@@ -22,6 +22,5 @@ export default class MoodJournalPlugin extends Plugin {
   openSetupWizard(): void { new SetupWizardModal(this).open(); }
   async saveSettings(): Promise<void> { await this.store.save(this.moodSettings); }
   scheduleSettingsSave(): void { if (this.settingsSaveTimer !== null) window.clearTimeout(this.settingsSaveTimer); this.settingsSaveTimer = window.setTimeout(() => { this.settingsSaveTimer = null; void this.saveSettings(); }, 250); }
-  async recordActivityUsage(ids: readonly string[]): Promise<void> { const now = new Date().toISOString(); this.moodSettings.activities = this.moodSettings.activities.map((activity) => ids.includes(activity.id) ? { ...activity, usageCount: activity.usageCount + 1, lastUsedAt: now, updatedAt: now } : activity); await this.saveSettings(); }
   override onunload(): void { if (this.settingsSaveTimer !== null) { window.clearTimeout(this.settingsSaveTimer); this.settingsSaveTimer = null; void this.saveSettings(); } }
 }
