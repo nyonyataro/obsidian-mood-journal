@@ -1,0 +1,12 @@
+name: Lint diagnostic
+on:
+  push:
+    branches: [agent/official-lint-readiness]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { show-progress: false }
+      - run: npm ci --silent
+      - run: npx eslint . --format stylish
