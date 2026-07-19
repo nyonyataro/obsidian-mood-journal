@@ -17,7 +17,6 @@
 .mood-journal-error-actions { display: flex; gap: var(--size-4-2); margin-top: var(--size-4-2); }
 .mood-journal-hidden { display: none; }
 .mood-journal-settings-heading { display: flex; align-items: center; gap: var(--size-4-2); margin-top: var(--size-4-8); }
-.mood-journal-settings-heading h3 { margin: 0; }
 .mood-journal-add-tag-button { margin-left: auto; }
 .mood-journal-help-button { align-self: center; border-radius: 50%; min-width: 18px; width: 18px; height: 18px; padding: 0; line-height: 18px; font-size: var(--font-ui-smaller); font-weight: var(--font-semibold); }
 .mood-journal-heading-help { margin: var(--size-4-2) 0; color: var(--text-muted); }
@@ -32,4 +31,5 @@
 .mood-journal-tag-children { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-4-1); padding-left: var(--size-4-2); }
 .mood-journal-tag-child-marker { color: var(--text-muted); padding: 0 var(--size-4-1); }
 .mood-journal-tag-child-button { background: var(--background-primary); }
+.mood-journal-clipboard-fallback { position: fixed; opacity: 0; }
 @media (max-width: 600px) { .mood-journal-dialog { width: calc(100vw - 16px); max-width: calc(100vw - 16px); margin: 8px; } .mood-journal-modal { max-height: calc(100vh - 16px); } .mood-journal-footer { justify-content: stretch; } .mood-journal-footer button { flex: 1; } }
