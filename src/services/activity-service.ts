@@ -10,7 +10,7 @@ export class ActivityService {
     if (parentId !== null && parent === undefined) throw new MoodJournalError('INVALID_ACTIVITY', 'error.invalidActivity');
     const duplicate = activities.find((activity) => activity.parentId === parentId && sameSlug(activity.slug, slug));
     if (duplicate !== undefined) return { activities: activities.map((activity) => activity.id === duplicate.id ? { ...activity, hidden: false, updatedAt: now } : activity), selectedId: duplicate.id };
-    const item: ActivityDefinition = { id: createActivityId(), parentId, label: label.trim().replace(/\s+/gu, ' '), slug, hidden: false, sortOrder: activities.filter((activity) => activity.parentId === parentId).length, usageCount: 0, lastUsedAt: null, createdAt: now, updatedAt: now };
+    const item: ActivityDefinition = { id: createActivityId(), parentId, label: label.trim().replace(/\s+/gu, ' '), slug, hidden: false, sortOrder: activities.filter((activity) => activity.parentId === parentId).length, createdAt: now, updatedAt: now };
     return { activities: [...activities, item], selectedId: item.id };
   }
   rename(activities: readonly ActivityDefinition[], id: string, label: string, now: string): ActivityDefinition[] {

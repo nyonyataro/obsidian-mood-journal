@@ -1,10 +1,10 @@
 # Mood Journal
 
-Mood Journal records a five-level mood, optional activities, and an optional Markdown note in your normal Obsidian daily note. It is designed for desktop and mobile and stores everything locally.
+Mood Journal records a required five-level mood, optional activities, and an optional Markdown note in your normal Obsidian daily note. It is designed for desktop and mobile and stores everything locally.
 
 ## Setup and use
 
-On first launch, choose a language and Daily notes mode. Use the smile ribbon icon or the **Open journal entry** command, choose a mood, optionally add activities or a note, and save. Use Ctrl/Cmd+Enter to save on desktop. You can choose a past or future date and time.
+On first launch, choose a language and Daily notes mode. Use the smile ribbon icon or the **Open journal entry** command, choose a mood, optionally add activities or a note, and save. Entries without a selected mood cannot be saved. Use Ctrl/Cmd+Enter to save on desktop. You can choose a past or future date and time.
 
 The plugin follows Obsidian Daily notes settings or uses its manual folder/date-format/template settings. It renders only core `{{title}}`, `{{date}}`, and `{{time}}` template variables; it does not execute Templater.
 

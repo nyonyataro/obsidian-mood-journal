@@ -13,7 +13,8 @@ For each fixture, create notes with no journal heading, one empty journal headin
 ## Desktop
 
 - Open through the ribbon and command palette.
-- Save mood-only, memo-only, tag selections, parent/child selections, and a long multi-line memo.
+- Save mood-only, mood with a memo, mood with tag selections, parent/child selections, and a long multi-line memo.
+- Verify memo or tag input without a mood cannot be saved.
 - Save past, current, future, and same-minute entries.
 - Verify a dirty close prompts for confirmation and a failed save preserves input.
 - Verify the retry and Markdown-copy actions.
