@@ -21,7 +21,7 @@
 ## Before Community 1.0
 
 - [ ] Test on iOS or obtain confirmation from a trusted external tester.
-- [ ] Create a public GitHub repository and push the reviewed source.
+- [x] Create a public GitHub repository and push the reviewed source.
 - [ ] Update `manifest.json`, `package.json`, and `versions.json` to `1.0.0` together.
 - [ ] Create a `1.0.0` GitHub Release with `main.js`, `manifest.json`, and `styles.css`.
 - [ ] Submit the repository through the Obsidian Community directory.
