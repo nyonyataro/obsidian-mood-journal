@@ -1,0 +1,1 @@
+export function createActivityId(): string { if (typeof globalThis.crypto?.randomUUID === 'function') return `activity_${globalThis.crypto.randomUUID()}`; return `activity_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`; }

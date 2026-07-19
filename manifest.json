@@ -1,0 +1,10 @@
+{
+  "id": "mood-journal",
+  "name": "Mood Journal",
+  "version": "0.1.0",
+  "minAppVersion": "1.8.7",
+  "description": "Quickly log mood, activities, and notes to daily notes.",
+  "author": "nyonyataro",
+  "authorUrl": "https://github.com/nyonyataro",
+  "isDesktopOnly": false
+}

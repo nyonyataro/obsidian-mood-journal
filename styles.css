@@ -1,0 +1,35 @@
+.mood-journal-dialog { width: min(720px, calc(100vw - 32px)); max-width: calc(100vw - 32px); box-sizing: border-box; }
+.mood-journal-modal { width: 100%; min-width: 0; max-width: 100%; max-height: calc(100vh - 32px); box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
+.mood-journal-modal-body { display: flex; flex: 1 1 auto; flex-direction: column; gap: var(--size-4-2); min-height: 0; overflow-x: hidden; overflow-y: auto; padding-right: var(--size-4-1); }
+.mood-journal-moods, .mood-journal-activities { display: flex; flex-wrap: wrap; gap: var(--size-4-2); }
+.mood-journal-activities-header { display: flex; align-items: center; justify-content: space-between; gap: var(--size-4-2); }
+.mood-journal-activity-search { width: 100%; box-sizing: border-box; min-height: 38px; }
+.mood-journal-mood, .mood-journal-activity, .mood-journal-footer button { min-height: 44px; }
+.mood-journal-mood[aria-pressed="true"], .mood-journal-activity[aria-pressed="true"] { outline: 2px solid var(--interactive-accent); font-weight: var(--font-semibold); }
+.mood-journal-choice { min-height: 44px; text-align: left; border: 1px solid var(--background-modifier-border); }
+.mood-journal-choice[aria-pressed="true"] { color: var(--text-on-accent); background: var(--interactive-accent); border-color: var(--interactive-accent); box-shadow: inset 0 0 0 1px var(--interactive-accent-hover); font-weight: var(--font-semibold); }
+.mood-journal-choice:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 2px; }
+.mood-journal-memo { width: 100%; min-height: 6em; max-height: 40vh; resize: vertical; box-sizing: border-box; }
+.mood-journal-date-inputs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; gap: var(--size-4-2); }
+.mood-journal-date-inputs input { display: block; width: 100%; min-width: 0; height: 44px; margin: 0; box-sizing: border-box; }
+.mood-journal-footer { display: flex; flex: 0 0 auto; justify-content: flex-end; gap: var(--size-4-2); padding: var(--size-4-2) 0 calc(var(--size-4-2) + env(safe-area-inset-bottom)); background: var(--modal-background); }
+.mood-journal-error { border: 1px solid var(--text-error); padding: var(--size-4-2); color: var(--text-error); }
+.mood-journal-error-actions { display: flex; gap: var(--size-4-2); margin-top: var(--size-4-2); }
+.mood-journal-hidden { display: none; }
+.mood-journal-settings-heading { display: flex; align-items: center; gap: var(--size-4-2); margin-top: var(--size-4-8); }
+.mood-journal-settings-heading h3 { margin: 0; }
+.mood-journal-add-tag-button { margin-left: auto; }
+.mood-journal-help-button { align-self: center; border-radius: 50%; min-width: 18px; width: 18px; height: 18px; padding: 0; line-height: 18px; font-size: var(--font-ui-smaller); font-weight: var(--font-semibold); }
+.mood-journal-heading-help { margin: var(--size-4-2) 0; color: var(--text-muted); }
+.mood-journal-tag-group { border: 1px solid var(--background-modifier-border); border-radius: var(--radius-s); margin-bottom: var(--size-4-3); overflow: hidden; }
+.mood-journal-tag-group .setting-item { padding-left: var(--size-4-3); padding-right: var(--size-4-3); }
+.mood-journal-tag-child { background: var(--background-secondary); }
+.mood-journal-tag-is-hidden { opacity: 0.62; }
+.mood-journal-tag-picker { display: grid; gap: var(--size-4-2); }
+.mood-journal-tag-tree { display: grid; gap: var(--size-4-1); padding: var(--size-4-2); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-s); background: var(--background-secondary); }
+.mood-journal-tag-parent-row { display: flex; min-width: 0; }
+.mood-journal-tag-parent { font-weight: var(--font-semibold); }
+.mood-journal-tag-children { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-4-1); padding-left: var(--size-4-2); }
+.mood-journal-tag-child-marker { color: var(--text-muted); padding: 0 var(--size-4-1); }
+.mood-journal-tag-child-button { background: var(--background-primary); }
+@media (max-width: 600px) { .mood-journal-dialog { width: calc(100vw - 16px); max-width: calc(100vw - 16px); margin: 8px; } .mood-journal-modal { max-height: calc(100vh - 16px); } .mood-journal-footer { justify-content: stretch; } .mood-journal-footer button { flex: 1; } }
