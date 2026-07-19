@@ -8,6 +8,18 @@ jobs:
       - uses: actions/setup-node@v6
         with: { node-version: 24, cache: npm }
       - run: npm ci
-      - run: npm run lint
+      - name: Run lint
+        id: lint
+        continue-on-error: true
+        run: npx eslint . --format json --output-file eslint-report.json
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: eslint-report.json
+      - name: Fail on lint errors
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
       - run: npm run test:run
       - run: npm run build
