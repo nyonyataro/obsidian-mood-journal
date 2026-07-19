@@ -10,7 +10,8 @@ export function parseMoodLogs(lines: readonly string[]): ParsedMoodLog[] {
     const block = lines.slice(start, index + 1).join('\n');
     const ids = [...block.matchAll(/> <!-- mood-log-id: (.+) -->/gu)].map((m) => m[1] ?? '');
     const scores = [...block.matchAll(/> <!-- mood-score: ([1-5]) -->/gu)].map((m) => Number(m[1]));
-    if (ids.length === 1 && scores.length === 1 && ISO_OFFSET.test(ids[0] ?? '') && !Number.isNaN(Date.parse(ids[0] ?? '')) && isMoodScore(scores[0])) logs.push({ start, end: index, id: ids[0] as string, occurredAt: ids[0] as string, score: scores[0] as MoodScore });
+    const id = ids[0]; const score = scores[0];
+    if (ids.length === 1 && scores.length === 1 && id !== undefined && score !== undefined && ISO_OFFSET.test(id) && !Number.isNaN(Date.parse(id)) && isMoodScore(score)) logs.push({ start, end: index, id, occurredAt: id, score });
   }
   return logs;
 }
