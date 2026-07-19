@@ -8,22 +8,6 @@ jobs:
       - uses: actions/setup-node@v6
         with: { node-version: 24, cache: npm }
       - run: npm ci
-      - name: Run lint
-        run: |
-          set +e
-          npx eslint . --format json --output-file eslint-report.json 2>eslint-stderr.txt
-          echo $? > eslint-exit-code.txt
-          exit 0
-      - name: Upload lint diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: eslint-diagnostics
-          path: |
-            eslint-report.json
-            eslint-stderr.txt
-            eslint-exit-code.txt
-      - name: Fail on lint errors
-        run: test "$(cat eslint-exit-code.txt)" -eq 0
+      - run: npm run lint
       - run: npm run test:run
       - run: npm run build
