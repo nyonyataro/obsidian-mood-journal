@@ -9,7 +9,6 @@ export async function copyToClipboard(value: string): Promise<void> {
     textarea.value = value;
     textarea.setAttribute('readonly', '');
     textarea.select();
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy fallback when the Clipboard API is unavailable.
     const copied = document.execCommand('copy');
     textarea.remove();
     if (!copied) throw new MoodJournalError('CLIPBOARD_FAILED', 'error.clipboardFailed');
