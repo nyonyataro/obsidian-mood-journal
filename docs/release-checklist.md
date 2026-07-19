@@ -4,6 +4,7 @@
 
 - [x] `npm ci`
 - [x] `npm run lint`
+- [x] Official `eslint-plugin-obsidianmd` recommended rules pass with no errors or warnings
 - [x] `npm run test:run`
 - [x] `npm run build`
 - [x] `npm run check`
