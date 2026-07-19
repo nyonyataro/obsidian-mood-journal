@@ -1,4 +1,4 @@
-import type { MoodScore, ParsedMoodLog } from '../types';
+import type { ParsedMoodLog } from '../types';
 import { isMoodScore } from '../domain/mood';
 
 const ISO_OFFSET = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:Z|[+-]\d{2}:\d{2})$/u;
