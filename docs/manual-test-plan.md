@@ -42,6 +42,11 @@ For each fixture, create notes with no journal heading, one empty Japanese headi
 ## Android and iOS
 
 - Verify the modal width, 44px targets, software keyboard, long memo scrolling, tag search, date toggle, and fixed save action.
+- On Android, focus the journal textarea and verify the textarea and Save button stay above the keyboard while typing multiple lines.
+- With the Android keyboard open, scroll the modal and rotate the device; verify the modal remains inside the visible viewport.
+- Repeat the Android keyboard test after switching between gesture navigation and 3-button navigation when available.
+- On iPhone and iPad, repeat the keyboard tests in portrait and landscape and verify the modal respects the notch, Dynamic Island, and Home indicator safe areas.
+- Verify the setup wizard and tag editor inputs remain visible above the keyboard on both Android and iOS.
 - Verify Japanese and English saves and Markdown copy on Android.
 - Verify PC-to-mobile and mobile-to-PC sync without overwriting note content.
 

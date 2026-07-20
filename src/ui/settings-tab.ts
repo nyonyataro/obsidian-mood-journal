@@ -19,6 +19,7 @@ class PathSuggest extends AbstractInputSuggest<string> {
 export class MoodJournalSettingTab extends PluginSettingTab {
   private coreSettings: ManualDailyNoteSettings | null = null;
   private coreError = false;
+  private readonly suggesters: PathSuggest[] = [];
   constructor(private readonly plugin: MoodJournalPlugin) { super(plugin.app, plugin); }
   override getSettingDefinitions() {
     const locale = this.plugin.moodSettings.locale;
@@ -37,8 +38,9 @@ export class MoodJournalSettingTab extends PluginSettingTab {
   }
   // Obsidian versions before 1.13.0 use this imperative fallback.
   override display(): void { this.renderSettings(this.containerEl); }
+  override hide(): void { this.closeSuggesters(); }
   private renderSettings(containerEl: HTMLElement): void {
-    const locale = this.plugin.moodSettings.locale; containerEl.empty();
+    this.closeSuggesters(); const locale = this.plugin.moodSettings.locale; containerEl.empty();
     new Setting(containerEl).setName(t(locale, 'settings.language')).addDropdown((drop) => drop.addOption('ja', '日本語').addOption('en', 'English').setValue(locale).onChange(async (value) => { if (value === 'ja' || value === 'en') { this.plugin.moodSettings.locale = value; await this.plugin.saveSettings(); this.refreshSettings(); new Notice(t(value, 'notice.commandNameReload')); } }));
     this.heading(containerEl, t(locale, 'settings.daily'), t(locale, 'settings.dailyHelp'));
     new Setting(containerEl).setName(t(locale, 'settings.destination')).setDesc(t(locale, 'settings.destinationHelp')).addDropdown((drop) => drop.addOption('follow-core', t(locale, 'setup.follow')).addOption('manual', t(locale, 'setup.manual')).setValue(this.plugin.moodSettings.dailyNote.mode).onChange(async (value) => { if (value === 'follow-core' || value === 'manual') { this.plugin.moodSettings.dailyNote.mode = value; await this.plugin.saveSettings(); this.refreshSettings(); } }));
@@ -74,7 +76,8 @@ export class MoodJournalSettingTab extends PluginSettingTab {
   private folderPaths(): string[] { return this.plugin.app.vault.getAllLoadedFiles().filter((file): file is TFolder => file instanceof TFolder).map((folder) => folder.path).filter(Boolean); }
   private templatePaths(): string[] { return this.plugin.app.vault.getAllLoadedFiles().filter((file): file is TFile => file instanceof TFile && file.extension === 'md').map((file) => file.path); }
   private textSetting(container: HTMLElement, name: string, value: string, update: (value: string) => Promise<void>): void { new Setting(container).setName(name).addText((text) => { text.setValue(value); text.inputEl.addEventListener('blur', () => void this.saveTextValue(text.inputEl.value, update)); }); }
-  private pathSetting(container: HTMLElement, name: string, value: string, values: () => string[], update: (value: string) => Promise<void>): void { new Setting(container).setName(name).addText((text) => { text.setValue(value); text.inputEl.addEventListener('blur', () => void this.saveTextValue(text.inputEl.value, update)); new PathSuggest(this.plugin, text.inputEl, values); }); }
+  private pathSetting(container: HTMLElement, name: string, value: string, values: () => string[], update: (value: string) => Promise<void>): void { new Setting(container).setName(name).addText((text) => { text.setValue(value); text.inputEl.addEventListener('blur', () => void this.saveTextValue(text.inputEl.value, update)); this.suggesters.push(new PathSuggest(this.plugin, text.inputEl, values)); }); }
+  private closeSuggesters(): void { for (const suggester of this.suggesters) suggester.close(); this.suggesters.length = 0; }
   private async saveTextValue(value: string, update: (value: string) => Promise<void>): Promise<void> { try { await update(value); this.plugin.scheduleSettingsSave(); } catch { new Notice(t(this.plugin.moodSettings.locale, 'settings.invalidValue')); this.refreshSettings(); } }
   private tagSetting(container: HTMLElement, id: string, label: string, hidden: boolean, child: boolean): void { const locale = this.plugin.moodSettings.locale; let isHidden = hidden; const description = (): string => t(locale, isHidden ? 'settings.hidden' : 'settings.visible'); const setting = new Setting(container).setName(child ? `↳ ${label}` : label).setDesc(description()).addText((text) => { text.setValue(label); text.inputEl.addEventListener('blur', () => void this.renameTag(id, label, text.inputEl.value)); }).addButton((button) => button.setButtonText(isHidden ? t(locale, 'settings.restore') : t(locale, 'settings.hide')).onClick(async () => { isHidden = !isHidden; this.plugin.moodSettings.activities = new ActivityService().setHidden(this.plugin.moodSettings.activities, id, isHidden, new Date().toISOString()); await this.plugin.saveSettings(); setting.setDesc(description()); button.setButtonText(isHidden ? t(locale, 'settings.restore') : t(locale, 'settings.hide')); setting.settingEl.toggleClass('mood-journal-tag-is-hidden', isHidden); })); setting.settingEl.toggleClass('mood-journal-tag-is-hidden', isHidden); if (child) setting.settingEl.addClass('mood-journal-tag-child'); }
   private async renameTag(id: string, previous: string, value: string): Promise<void> { if (value === previous) return; try { this.plugin.moodSettings.activities = new ActivityService().rename(this.plugin.moodSettings.activities, id, value, new Date().toISOString()); await this.plugin.saveSettings(); this.refreshSettings(); } catch { new Notice(t(this.plugin.moodSettings.locale, 'settings.tagRenameError')); this.refreshSettings(); } }

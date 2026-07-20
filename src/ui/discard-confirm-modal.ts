@@ -12,7 +12,8 @@ interface ConfirmModalOptions {
 
 export class ConfirmModal extends Modal {
   constructor(app: Modal['app'], private readonly options: ConfirmModalOptions, private readonly onConfirm: () => void) { super(app); }
-  override onOpen(): void { this.modalEl.addClass('mood-journal-dialog'); this.contentEl.createEl('h2', { text: this.options.title }); this.contentEl.createEl('p', { text: this.options.body }); const footer = this.contentEl.createDiv({ cls: 'mood-journal-footer' }); footer.createEl('button', { text: this.options.cancelLabel }).onclick = () => this.close(); footer.createEl('button', { text: this.options.confirmLabel, cls: this.options.warning === false ? 'mod-cta' : 'mod-warning' }).onclick = () => { this.close(); this.onConfirm(); }; }
+  override onOpen(): void { this.modalEl.addClass('mood-journal-dialog'); this.setTitle(this.options.title); this.contentEl.createEl('p', { text: this.options.body }); const footer = this.contentEl.createDiv({ cls: 'mood-journal-footer' }); footer.createEl('button', { text: this.options.cancelLabel }).onclick = () => this.close(); footer.createEl('button', { text: this.options.confirmLabel, cls: this.options.warning === false ? 'mod-cta' : 'mod-warning' }).onclick = () => { this.close(); this.onConfirm(); }; }
+  override onClose(): void { this.contentEl.empty(); }
 }
 
 export class DiscardConfirmModal extends ConfirmModal {

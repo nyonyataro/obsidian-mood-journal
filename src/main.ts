@@ -1,4 +1,4 @@
-import { Plugin } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import type { MoodJournalSettings } from './types';
 import { SerializedSettingsStore } from './settings/settings-store';
 import { CoreDailyNoteConfigReader } from './services/daily-note-config-reader';
@@ -7,6 +7,7 @@ import { JournalService } from './services/journal-service';
 import { JournalEntryModal } from './ui/journal-entry-modal';
 import { SetupWizardModal } from './ui/setup-wizard-modal';
 import { MoodJournalSettingTab } from './ui/settings-tab';
+import { t } from './i18n';
 
 export default class MoodJournalPlugin extends Plugin {
   moodSettings!: MoodJournalSettings;
@@ -21,6 +22,6 @@ export default class MoodJournalPlugin extends Plugin {
   openJournalEntryModal(): void { if (!this.moodSettings.setupCompleted) this.openSetupWizard(); else new JournalEntryModal(this).open(); }
   openSetupWizard(): void { new SetupWizardModal(this).open(); }
   async saveSettings(): Promise<void> { await this.store.save(this.moodSettings); }
-  scheduleSettingsSave(): void { if (this.settingsSaveTimer !== null) window.clearTimeout(this.settingsSaveTimer); this.settingsSaveTimer = window.setTimeout(() => { this.settingsSaveTimer = null; void this.saveSettings(); }, 250); }
-  override onunload(): void { if (this.settingsSaveTimer !== null) { window.clearTimeout(this.settingsSaveTimer); this.settingsSaveTimer = null; void this.saveSettings(); } }
+  scheduleSettingsSave(): void { if (this.settingsSaveTimer !== null) window.clearTimeout(this.settingsSaveTimer); this.settingsSaveTimer = window.setTimeout(() => { this.settingsSaveTimer = null; void this.saveSettings().catch(() => new Notice(t(this.moodSettings.locale, 'settings.invalidValue'))); }, 250); }
+  override onunload(): void { if (this.settingsSaveTimer !== null) { window.clearTimeout(this.settingsSaveTimer); this.settingsSaveTimer = null; void this.saveSettings().catch((cause) => console.error('[mood-journal] settings save failed during unload', cause)); } }
 }
