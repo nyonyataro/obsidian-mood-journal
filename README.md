@@ -10,20 +10,20 @@ The plugin follows Obsidian Daily notes settings or uses its manual folder/date-
 
 ## Saved Markdown
 
-English entries use an English heading and nested journal tags:
+English entries use an English heading and always include the journal root tag:
 
 ```md
 ## Journal
 
 > [!mood-log] 23:10 🙂 Good
-> #journal/Personal/Walk
+> #journal #journal/Personal/Walk
 > <!-- mood-log-id: 2026-07-20T23:10:00.000+09:00 -->
 > <!-- mood-score: 4 -->
 >
 > A short note.
 ```
 
-Japanese entries use `## 日記` and `#日記/...`. Activities use up to two levels, such as `#journal/Parent`, `#journal/Parent/Child`, `#日記/親`, or `#日記/親/子`. An entry without an activity uses only `#journal` or `#日記`. Multiple selected activities are stored as separate nested tags on the same quoted line.
+Japanese entries use `## 日記`, the root tag `#日記`, and localized nested activity tags. Activities use up to two levels, such as `#journal/Parent`, `#journal/Parent/Child`, `#日記/親`, or `#日記/親/子`. An entry without an activity uses only `#journal` or `#日記`. When activities are selected, the root tag is retained and the nested activity tags are added on the same quoted line. Multiple selected activities are stored as separate nested tags.
 
 Changing the display language affects only entries saved after the change. Existing Markdown is not migrated or rewritten, including legacy `#activity/...` tags. Japanese and English journal sections can coexist in the same daily note, and each language is ordered independently within its own section.
 
