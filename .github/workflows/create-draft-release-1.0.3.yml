@@ -1,7 +1,7 @@
 name: Create Mood Journal 1.0.3 draft release
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   release:
-    if: github.event.head_commit.message == 'Create Mood Journal 1.0.3 draft release'
+    if: github.event.pull_request.title == 'Create Mood Journal 1.0.3 draft release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -43,17 +43,3 @@ jobs:
             main.js
             manifest.json
             styles.css
-      - name: Record successful draft creation
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          release_id="$(gh api repos/${GITHUB_REPOSITORY}/releases/tags/1.0.3 --jq '.id')"
-          git fetch origin main:refs/remotes/origin/main
-          git switch -C main origin/main
-          printf 'Draft release 1.0.3 created successfully (release ID: %s).\n' "$release_id" > .github/release-1.0.3-ready.txt
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add .github/release-1.0.3-ready.txt
-          git commit -m "Record 1.0.3 draft release creation"
-          git push origin HEAD:main
