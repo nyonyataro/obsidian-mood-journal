@@ -8,7 +8,7 @@ import { MoodJournalError } from '../utils/errors';
 import { ActivityEditorModal } from './activity-editor-modal';
 import { copyToClipboard } from '../services/clipboard-service';
 import { generateCallout } from '../markdown/callout-generator';
-import { localDateInputValue, localTimeInputValue, parseManualDateTime, toOffsetIso } from '../utils/datetime';
+import { localDateInputValue, localTimeInputValue, parseManualDateTime } from '../utils/datetime';
 import { DiscardConfirmModal } from './discard-confirm-modal';
 import { isDraftDirty } from '../domain/journal-draft';
 
@@ -56,5 +56,11 @@ export class JournalEntryModal extends Modal {
   private tagButton(container: HTMLElement, tag: ActivityDefinition, cls: string): void { const button = container.createEl('button', { text: tag.label, cls: `mood-journal-activity ${cls}` }); button.setAttribute('aria-pressed', String(this.draft.activityIds.includes(tag.id))); button.onclick = () => { this.draft.activityIds = toggleActivitySelection(this.draft.activityIds, tag, this.plugin.moodSettings.activities); this.render(); }; }
   private isDirty(): boolean { return isDraftDirty(this.draft); }
   private async save(): Promise<void> { if (this.saving || this.draft.moodScore === null) return; this.saving = true; this.error = ''; this.render(); try { await this.plugin.journalService.saveDraft(this.draft); this.allowClose = true; this.close(); new Notice(t(this.plugin.moodSettings.locale, 'notice.saved')); } catch (cause) { const code = cause instanceof MoodJournalError ? cause.code : 'UNKNOWN'; this.error = `${t(this.plugin.moodSettings.locale, 'error.save')} (${code})`; console.error('[mood-journal]', code, cause instanceof MoodJournalError ? cause.safeContext : {}, cause); } finally { this.saving = false; if (this.modalEl.isConnected) this.render(); } }
-  private async copyMarkdown(): Promise<void> { if (this.draft.moodScore === null) return; const score = this.draft.moodScore; const occurredAt = this.draft.dateTimeMode === 'manual' ? parseManualDateTime(this.draft.manualDate, this.draft.manualTime) : new Date(); if (occurredAt === null) return; const id = toOffsetIso(occurredAt); const activities = this.draft.activityIds.flatMap((id) => { const tag = this.plugin.moodSettings.activities.find((item) => item.id === id); if (tag === undefined) return []; const parent = tag.parentId === null ? undefined : this.plugin.moodSettings.activities.find((item) => item.id === tag.parentId); return [{ activityId: tag.id, labelPath: parent === undefined ? tag.label : `${parent.label}/${tag.label}`, tag: parent === undefined ? `#activity/${tag.slug}` : `#activity/${parent.slug}/${tag.slug}` }]; }); try { await copyToClipboard(generateCallout({ id, occurredAt: id, moodScore: score, moodEmoji: MOODS[score], moodLabel: this.plugin.moodSettings.moodLabels[score], activities, memo: this.draft.memo })); new Notice(t(this.plugin.moodSettings.locale, 'notice.copied')); } catch (cause) { this.error = cause instanceof MoodJournalError ? cause.code : 'CLIPBOARD_FAILED'; this.render(); } }
+  private async copyMarkdown(): Promise<void> {
+    if (this.draft.moodScore === null) return;
+    const occurredAt = this.draft.dateTimeMode === 'manual' ? parseManualDateTime(this.draft.manualDate, this.draft.manualTime) : new Date();
+    if (occurredAt === null) return;
+    try { await copyToClipboard(generateCallout(this.plugin.journalService.createEntry(this.draft, occurredAt))); new Notice(t(this.plugin.moodSettings.locale, 'notice.copied')); }
+    catch (cause) { this.error = cause instanceof MoodJournalError ? cause.code : 'CLIPBOARD_FAILED'; this.render(); }
+  }
 }

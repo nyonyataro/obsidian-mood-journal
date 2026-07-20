@@ -1,16 +1,17 @@
 import type { JournalEntry } from '../types';
 import { generateCallout } from './callout-generator';
 import { parseMoodLogs } from './callout-parser';
+import { journalHeading } from './journal-locale';
 import { findJournalSections } from './journal-section-parser';
 import { newlineOf, withFinalNewline } from './newline';
 
 export class DuplicateJournalHeadingError extends Error {}
 export function insertJournalEntry(content: string, entry: JournalEntry): string {
-  const newline = newlineOf(content); const sections = findJournalSections(content);
+  const newline = newlineOf(content); const sections = findJournalSections(content).filter((section) => section.locale === entry.locale);
   if (sections.length > 1) throw new DuplicateJournalHeadingError('duplicate journal heading');
   const callout = generateCallout(entry, newline); let lines = content ? content.replace(/(?:\r\n|\n)$/u, '').split(/\r\n|\n/u) : [];
   if (sections.length === 0) {
-    const prefix = lines.length === 0 ? ['## 日記', ''] : ['', '## 日記', ''];
+    const prefix = lines.length === 0 ? [journalHeading(entry.locale), ''] : ['', journalHeading(entry.locale), ''];
     return withFinalNewline([...lines, ...prefix, ...callout.split(newline)].join(newline), newline);
   }
   const section = sections[0]; if (section === undefined) throw new Error('unreachable');

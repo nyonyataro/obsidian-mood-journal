@@ -2,6 +2,7 @@ import { AbstractInputSuggest, Modal, Notice, TFile, TFolder, moment } from 'obs
 import type MoodJournalPlugin from '../main';
 import type { Locale, ManualDailyNoteSettings } from '../types';
 import { t } from '../i18n';
+import { journalHeading, journalRoot } from '../markdown/journal-locale';
 import { defaultSettings } from '../settings/defaults';
 import { CoreDailyNoteConfigReader } from '../services/daily-note-config-reader';
 import { generateDailyNotePath } from '../services/daily-note-path';
@@ -65,7 +66,7 @@ export class SetupWizardModal extends Modal {
       const settings = defaultSettings(this.locale); const daily = this.followCore && this.coreSettings !== null ? this.coreSettings : { folder: this.folder, format: this.format, templatePath: this.templatePath || null };
       el.createEl('p', { text: `${t(this.locale, 'setup.preview')}: ${this.preview(daily)}` });
       el.createEl('p', { text: `${t(this.locale, 'setup.initialTags')}: ${settings.activities.map((activity) => activity.label).join(', ')}` });
-      el.createEl('p', { text: t(this.locale, 'setup.saveExample') }); el.createEl('pre', { text: '> [!mood-log] 12:00 🙂\n> #日記' });
+      el.createEl('p', { text: t(this.locale, 'setup.saveExample') }); el.createEl('pre', { text: `${journalHeading(this.locale)}\n\n> [!mood-log] 12:00 🙂\n> ${journalRoot(this.locale)}` });
     }
     if (this.error) el.createDiv({ text: this.error, cls: 'mood-journal-error', attr: { role: 'alert' } });
     const footer = el.createDiv({ cls: 'mood-journal-footer' }); if (this.page > 1) footer.createEl('button', { text: t(this.locale, 'setup.back') }).onclick = () => { this.page -= 1; this.render(); };
