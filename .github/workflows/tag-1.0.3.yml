@@ -1,0 +1,23 @@
+name: Tag Mood Journal 1.0.3
+
+on:
+  push:
+    branches:
+      - release/1.0.3
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Create release tag
+        shell: bash
+        run: |
+          git tag 1.0.3 0614ab7d07e9e1bd01e4dca04216cbdfadfaed6f
+          git push origin refs/tags/1.0.3
