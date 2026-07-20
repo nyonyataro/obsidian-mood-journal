@@ -20,6 +20,10 @@ jobs:
       - run: npm ci
       - run: npm run check
       - uses: actions/attest-build-provenance@v3
-        with: { subject-path: main.js }
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
       - uses: softprops/action-gh-release@v2
         with: { draft: true, files: "main.js\nmanifest.json\nstyles.css" }
