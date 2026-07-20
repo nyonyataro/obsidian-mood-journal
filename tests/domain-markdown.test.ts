@@ -45,17 +45,17 @@ describe('activity', () => {
 describe('markdown', () => {
   it('provides localized journal headings and roots', () => { expect(journalHeading('ja')).toBe('## 日記'); expect(journalHeading('en')).toBe('## Journal'); expect(journalRoot('ja')).toBe('#日記'); expect(journalRoot('en')).toBe('#journal'); expect(journalTag('en', ['Work', 'Meeting'])).toBe('#journal/Work/Meeting'); });
   it('generates localized root tags when no activity is selected', () => { expect(generateCallout(entry)).toContain('> #日記\n'); expect(generateCallout({ ...entry, locale: 'en', moodLabel: 'Good' })).toContain('> #journal\n'); });
-  it('generates localized parent, child, and multiple nested tags', () => {
+  it('retains the localized root tag with parent, child, and multiple nested tags', () => {
     const parent = { activityId: 'work', labelPath: '仕事', slugPath: ['仕事'] };
     const child = { activityId: 'meeting', labelPath: '仕事/会議', slugPath: ['仕事', '会議'] };
     const walk = { activityId: 'walk', labelPath: 'プライベート/散歩', slugPath: ['プライベート', '散歩'] };
-    expect(generateCallout({ ...entry, activities: [parent] })).toContain('> #日記/仕事\n');
-    expect(generateCallout({ ...entry, activities: [child] })).toContain('> #日記/仕事/会議\n');
-    expect(generateCallout({ ...entry, activities: [child, walk] })).toContain('> #日記/仕事/会議 #日記/プライベート/散歩\n');
-    expect(generateCallout({ ...entry, locale: 'en', moodLabel: 'Good', activities: [{ activityId: 'meeting', labelPath: 'Work/Meeting', slugPath: ['Work', 'Meeting'] }] })).toContain('> #journal/Work/Meeting\n');
+    expect(generateCallout({ ...entry, activities: [parent] })).toContain('> #日記 #日記/仕事\n');
+    expect(generateCallout({ ...entry, activities: [child] })).toContain('> #日記 #日記/仕事/会議\n');
+    expect(generateCallout({ ...entry, activities: [child, walk] })).toContain('> #日記 #日記/仕事/会議 #日記/プライベート/散歩\n');
+    expect(generateCallout({ ...entry, locale: 'en', moodLabel: 'Good', activities: [{ activityId: 'meeting', labelPath: 'Work/Meeting', slugPath: ['Work', 'Meeting'] }] })).toContain('> #journal #journal/Work/Meeting\n');
   });
   it('never generates the legacy activity namespace', () => { expect(generateCallout({ ...entry, activities: [{ activityId: 'x', labelPath: '仕事/会議', slugPath: ['仕事', '会議'] }] })).not.toContain('#activity/'); });
-  it('generates callout with CRLF and memo', () => { const result = generateCallout({ ...entry, activities: [{ activityId: 'x', labelPath: '仕事/会議', slugPath: ['仕事', '会議'] }], memo: 'a\n\n- b' }, '\r\n'); expect(result).toContain('> #日記/仕事/会議\r\n'); expect(result).toContain('>\r\n> - b'); });
+  it('generates callout with CRLF and memo', () => { const result = generateCallout({ ...entry, activities: [{ activityId: 'x', labelPath: '仕事/会議', slugPath: ['仕事', '会議'] }], memo: 'a\n\n- b' }, '\r\n'); expect(result).toContain('> #日記 #日記/仕事/会議\r\n'); expect(result).toContain('>\r\n> - b'); });
   it('generates no trailing blank quote when memo is absent', () => { const result = generateCallout(entry); expect(result).not.toContain('\n>\n'); expect(result.split('\n')).toHaveLength(4); });
   it('uses the selected mood label and preserves explicit LF line endings', () => { const result = generateCallout({ ...entry, moodLabel: 'Great', memo: '- one\n- two' }, '\n'); expect(result).toContain('🙂 Great'); expect(result).toContain('> - one\n> - two'); expect(result).not.toContain('\r\n'); });
   it('parses valid logs and safely ignores malformed logs', () => { const lines = generateCallout(entry).split('\n'); expect(parseMoodLogs(lines)).toHaveLength(1); lines[3] = '> <!-- mood-score: 9 -->'; expect(parseMoodLogs(lines)).toHaveLength(0); });
