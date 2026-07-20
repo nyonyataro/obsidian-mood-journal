@@ -2,6 +2,14 @@
 
 Mood Journal records a required five-level mood, optional activities, and an optional Markdown note in your normal Obsidian daily note. It is designed for desktop and mobile and stores everything locally.
 
+## Screenshots
+
+<p align="center">
+  <img src="assets/mood-journal-ja-preview.svg" alt="Mood Journal Japanese entry form and saved daily note" width="650">
+</p>
+
+The Japanese interface above shows selecting a required mood and a nested activity, then the saved callout with both `#日記` and `#日記/プライベート/散歩`.
+
 ## Setup and use
 
 On first launch, choose a language and Daily notes mode. Use the smile ribbon icon or the **Open journal entry** command, choose a mood, optionally add activities or a note, and save. Entries without a selected mood cannot be saved. Use Ctrl/Cmd+Enter to save on desktop. You can choose a past or future date and time.
