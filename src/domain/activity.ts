@@ -2,7 +2,7 @@ import type { ActivityDefinition } from '../types';
 
 export function normalizeActivityLabel(value: string): string { return value.normalize('NFKC').trim().replace(/\s+/gu, ' '); }
 export function activitySlug(value: string): string {
-  if (/[\/#\r\n\t]/u.test(value)) throw new Error('invalid activity character');
+  if (/[/#\r\n\t]/u.test(value)) throw new Error('invalid activity character');
   const slug = normalizeActivityLabel(value).replace(/\s+/gu, '-').replace(/-+/gu, '-').replace(/^-+|-+$/gu, '');
   if (!slug || /^\d+$/u.test(slug) || !/^[\p{L}\p{N}\p{M}_\-\p{S}\p{P}]+$/u.test(slug)) throw new Error('invalid activity slug');
   return slug;
