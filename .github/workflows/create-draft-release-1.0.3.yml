@@ -49,7 +49,8 @@ jobs:
         shell: bash
         run: |
           release_id="$(gh api repos/${GITHUB_REPOSITORY}/releases/tags/1.0.3 --jq '.id')"
-          git switch release/1.0.3
+          git fetch origin release/1.0.3:refs/remotes/origin/release/1.0.3
+          git switch -C release/1.0.3 origin/release/1.0.3
           printf 'Draft release 1.0.3 created successfully (release ID: %s).\n' "$release_id" > .github/release-1.0.3-ready.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
