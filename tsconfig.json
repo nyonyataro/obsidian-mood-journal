@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "inlineSourceMap": true,
     "inlineSources": true,
     "module": "ESNext",
     "target": "ES2022",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "isolatedModules": true,
     "strict": true,
@@ -17,8 +16,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "esModuleInterop": true,
-    "lib": ["DOM", "ES2022"],
-    "paths": { "obsidian": ["node_modules/obsidian/obsidian.d.ts"] }
+    "lib": ["DOM", "ES2022"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "tests"]
