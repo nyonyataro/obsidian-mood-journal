@@ -11,6 +11,7 @@ import { generateCallout } from '../markdown/callout-generator';
 import { localDateInputValue, localTimeInputValue, parseManualDateTime } from '../utils/datetime';
 import { DiscardConfirmModal } from './discard-confirm-modal';
 import { isDraftDirty } from '../domain/journal-draft';
+import { MobileModalViewport } from './mobile-modal-viewport';
 
 const emptyDraft = (): JournalDraft => ({
   moodScore: null,
@@ -28,36 +29,23 @@ export class JournalEntryModal extends Modal {
   private query = '';
   private allowClose = false;
   private bodyScrollTop = 0;
-
-  private readonly handleViewportChange = (): void => {
-    this.syncVisualViewport();
-    window.requestAnimationFrame(() => {
-      const activeElement = document.activeElement;
-      if (activeElement instanceof HTMLElement && this.contentEl.contains(activeElement)) {
-        activeElement.scrollIntoView({ block: 'nearest' });
-      }
-    });
-  };
+  private readonly mobileViewport: MobileModalViewport;
 
   constructor(private readonly plugin: MoodJournalPlugin) {
     super(plugin.app);
+    this.mobileViewport = new MobileModalViewport(this.containerEl, this.contentEl);
   }
 
   override onOpen(): void {
-    this.containerEl.addClass('mood-journal-viewport-container');
     this.modalEl.addClass('mood-journal-dialog');
-    this.syncVisualViewport();
-    window.addEventListener('resize', this.handleViewportChange);
-    window.visualViewport?.addEventListener('resize', this.handleViewportChange);
+    this.setTitle(t(this.plugin.moodSettings.locale, 'entry.title'));
     this.render();
+    this.mobileViewport.attach();
   }
 
   override onClose(): void {
-    window.removeEventListener('resize', this.handleViewportChange);
-    window.visualViewport?.removeEventListener('resize', this.handleViewportChange);
-    this.containerEl.removeClass('mood-journal-viewport-container');
-    this.containerEl.style.removeProperty('--mood-journal-viewport-height');
-    this.containerEl.style.removeProperty('--mood-journal-viewport-top');
+    this.mobileViewport.detach();
+    this.contentEl.empty();
   }
 
   override close(): void {
@@ -71,14 +59,6 @@ export class JournalEntryModal extends Modal {
     super.close();
   }
 
-  private syncVisualViewport(): void {
-    const viewport = window.visualViewport;
-    const viewportHeight = viewport?.height ?? window.innerHeight;
-    const viewportTop = viewport?.offsetTop ?? 0;
-    this.containerEl.style.setProperty('--mood-journal-viewport-height', `${viewportHeight}px`);
-    this.containerEl.style.setProperty('--mood-journal-viewport-top', `${viewportTop}px`);
-  }
-
   private render(): void {
     const { contentEl } = this;
     const locale = this.plugin.moodSettings.locale;
@@ -89,7 +69,6 @@ export class JournalEntryModal extends Modal {
       this.bodyScrollTop = body.scrollTop;
     };
 
-    body.createEl('h2', { text: t(locale, 'entry.title') });
     body.createEl('p', { text: t(locale, 'entry.mood') });
     const moods = body.createDiv({ cls: 'mood-journal-moods' });
     for (const score of [5, 4, 3, 2, 1] as MoodScore[]) {
