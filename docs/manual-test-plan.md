@@ -23,8 +23,10 @@ For each fixture, create notes with no journal heading, one empty Japanese headi
 
 ## Localization and Markdown
 
-- Save a new entry in Japanese and verify `## 日記` and `#日記` or `#日記/...`.
-- Save a new entry in English and verify `## Journal` and `#journal` or `#journal/...`.
+- Save a new entry in Japanese without activities and verify `## 日記` and `#日記`.
+- Save a new entry in Japanese with activities and verify the line contains both `#日記` and `#日記/...`.
+- Save a new entry in English without activities and verify `## Journal` and `#journal`.
+- Save a new entry in English with activities and verify the line contains both `#journal` and `#journal/...`.
 - Switch Japanese to English and save both languages into the same daily note.
 - Switch English back to Japanese and verify the existing `## 日記` section is reused instead of creating a third journal section.
 - Verify one Japanese and one English section can coexist without an error.
@@ -35,7 +37,7 @@ For each fixture, create notes with no journal heading, one empty Japanese headi
 - Verify Markdown copy follows the current language and matches the normal save format.
 - Verify the settings screen shows labels and visible/hidden state without `#activity/...` or any complete generated tag path.
 - Verify the setup preview follows the selected language.
-- Verify Japanese and English screenshots show the correct localized heading, mood label, and nested tag.
+- Verify Japanese and English screenshots show the correct localized heading, root tag, mood label, and nested activity tag.
 
 ## Android and iOS
 
