@@ -10,18 +10,24 @@ The plugin follows Obsidian Daily notes settings or uses its manual folder/date-
 
 ## Saved Markdown
 
+English entries use an English heading and nested journal tags:
+
 ```md
-## 日記
+## Journal
 
 > [!mood-log] 23:10 🙂 Good
-> #日記 #activity/Personal/Walk
+> #journal/Personal/Walk
 > <!-- mood-log-id: 2026-07-20T23:10:00.000+09:00 -->
 > <!-- mood-score: 4 -->
 >
 > A short note.
 ```
 
-Activities use up to two levels: `#activity/Parent` or `#activity/Parent/Child`. Mood labels and activities are stored in the plugin's `data.json`; journal entries remain Markdown. Broken manually edited logs are not repaired automatically.
+Japanese entries use `## 日記` and `#日記/...`. Activities use up to two levels, such as `#journal/Parent`, `#journal/Parent/Child`, `#日記/親`, or `#日記/親/子`. An entry without an activity uses only `#journal` or `#日記`. Multiple selected activities are stored as separate nested tags on the same quoted line.
+
+Changing the display language affects only entries saved after the change. Existing Markdown is not migrated or rewritten, including legacy `#activity/...` tags. Japanese and English journal sections can coexist in the same daily note, and each language is ordered independently within its own section.
+
+The tags are normal Obsidian nested tags. Mood Journal does not add or modify Properties/frontmatter, and it does not add activity-specific HTML comments. The existing `mood-log-id` and `mood-score` comments remain part of the log format. Mood labels and activities are stored in the plugin's `data.json`; journal entries remain Markdown. Broken manually edited logs are not repaired automatically.
 
 ## Privacy
 
@@ -40,7 +46,7 @@ npm run check
 
 Run `npm run dev` for watch mode. Releases are prepared by the tag-triggered draft workflow; create no release before device QA. Screenshots/GIFs should be added before public release.
 
-The repository includes a [manual test plan](docs/manual-test-plan.md) for desktop, Android, iOS, sync, and destructive-safety checks.
+The repository includes a [manual test plan](docs/manual-test-plan.md) for desktop, Android, iOS, sync, localization, and destructive-safety checks.
 See the [release checklist](docs/release-checklist.md) before creating a beta or Community release.
 
 ## Support

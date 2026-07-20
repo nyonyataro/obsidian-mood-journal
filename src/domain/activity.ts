@@ -15,9 +15,15 @@ export function toggleActivitySelection(selected: readonly string[], activity: A
   if (activity.parentId === null) return [...selected.filter((id) => all.find((item) => item.id === id)?.parentId !== activity.id), activity.id];
   return [...selected.filter((id) => id !== activity.parentId), activity.id];
 }
-export function activityTag(activity: ActivityDefinition, all: readonly ActivityDefinition[]): string {
-  if (activity.parentId === null) return `#activity/${activity.slug}`;
+export function activityLabelPath(activity: ActivityDefinition, all: readonly ActivityDefinition[]): string[] {
+  if (activity.parentId === null) return [activity.label];
   const parent = all.find((item) => item.id === activity.parentId);
   if (parent === undefined) throw new Error('activity parent missing');
-  return `#activity/${parent.slug}/${activity.slug}`;
+  return [parent.label, activity.label];
+}
+export function activitySlugPath(activity: ActivityDefinition, all: readonly ActivityDefinition[]): string[] {
+  if (activity.parentId === null) return [activity.slug];
+  const parent = all.find((item) => item.id === activity.parentId);
+  if (parent === undefined) throw new Error('activity parent missing');
+  return [parent.slug, activity.slug];
 }
