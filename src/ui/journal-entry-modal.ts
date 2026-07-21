@@ -28,12 +28,12 @@ export class JournalEntryModal extends Modal {
   private error = '';
   private query = '';
   private allowClose = false;
-  private bodyScrollTop = 0;
+  private modalScrollTop = 0;
   private readonly mobileViewport: MobileModalViewport;
 
   constructor(private readonly plugin: MoodJournalPlugin) {
     super(plugin.app);
-    this.mobileViewport = new MobileModalViewport(this.containerEl, this.contentEl);
+    this.mobileViewport = new MobileModalViewport(this.modalEl, this.contentEl);
   }
 
   override onOpen(): void {
@@ -66,7 +66,7 @@ export class JournalEntryModal extends Modal {
     contentEl.addClass('mood-journal-modal');
     const body = contentEl.createDiv({ cls: 'mood-journal-modal-body' });
     body.onscroll = () => {
-      this.bodyScrollTop = body.scrollTop;
+      this.modalScrollTop = body.scrollTop;
     };
 
     body.createEl('p', { text: t(locale, 'entry.mood') });
@@ -103,7 +103,7 @@ export class JournalEntryModal extends Modal {
     });
     change.setAttribute('aria-expanded', String(this.draft.dateTimeMode === 'manual'));
     change.onclick = () => {
-      this.bodyScrollTop = body.scrollTop;
+      this.modalScrollTop = body.scrollTop;
       if (this.draft.dateTimeMode === 'manual') {
         this.draft.dateTimeMode = 'auto';
         this.draft.manualDate = '';
@@ -140,7 +140,7 @@ export class JournalEntryModal extends Modal {
         this.draft.manualTime = time.value;
       };
       body.createEl('button', { text: t(locale, 'entry.autoDate') }).onclick = () => {
-        this.bodyScrollTop = body.scrollTop;
+        this.modalScrollTop = body.scrollTop;
         this.draft.dateTimeMode = 'auto';
         this.draft.manualDate = '';
         this.draft.manualTime = '';
@@ -171,12 +171,13 @@ export class JournalEntryModal extends Modal {
         return;
       }
       if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) && /^[1-5]$/u.test(event.key)) {
-        this.bodyScrollTop = body.scrollTop;
+        this.modalScrollTop = body.scrollTop;
         this.draft.moodScore = Number(event.key) as MoodScore;
         this.render();
       }
     };
-    body.scrollTop = this.bodyScrollTop;
+    body.scrollTop = this.modalScrollTop;
+    this.mobileViewport.refresh();
   }
 
   private renderTags(contentEl: HTMLElement, locale: 'ja' | 'en'): void {
