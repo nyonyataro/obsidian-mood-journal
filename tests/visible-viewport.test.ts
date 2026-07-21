@@ -1,39 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { isKeyboardLikelyVisible, resolveVisibleViewport } from '../src/ui/visible-viewport';
+import { resolveVisibleViewportHeight } from '../src/ui/visible-viewport';
 
-describe('resolveVisibleViewport', () => {
-  it('uses the visual viewport after the software keyboard opens', () => {
-    expect(resolveVisibleViewport(800, { height: 480, offsetTop: 0 })).toEqual({
-      height: 480,
-      top: 0,
-    });
+describe('resolveVisibleViewportHeight', () => {
+  it('uses the visual viewport height after the software keyboard opens', () => {
+    expect(resolveVisibleViewportHeight(800, { height: 480, scale: 1 })).toBe(480);
   });
 
-  it('tracks a visual viewport panned by Android WebView', () => {
-    expect(resolveVisibleViewport(800, { height: 500, offsetTop: 120 })).toEqual({
-      height: 500,
-      top: 120,
-    });
+  it('uses natural CSS pixels when the visual viewport reports a scale', () => {
+    expect(resolveVisibleViewportHeight(800, { height: 400, scale: 1.5 })).toBe(600);
   });
 
-  it('keeps the viewport inside the layout viewport', () => {
-    expect(resolveVisibleViewport(800, { height: 500, offsetTop: 500 })).toEqual({
-      height: 300,
-      top: 500,
-    });
+  it('does not exceed the layout viewport', () => {
+    expect(resolveVisibleViewportHeight(800, { height: 900, scale: 1 })).toBe(800);
   });
 
-  it('falls back to the layout viewport', () => {
-    expect(resolveVisibleViewport(800)).toEqual({ height: 800, top: 0 });
-  });
-});
-
-describe('isKeyboardLikelyVisible', () => {
-  it('detects a keyboard-sized visual viewport reduction', () => {
-    expect(isKeyboardLikelyVisible(800, { height: 480, offsetTop: 0 })).toBe(true);
-  });
-
-  it('does not treat browser chrome changes as a keyboard', () => {
-    expect(isKeyboardLikelyVisible(800, { height: 720, offsetTop: 0 })).toBe(false);
+  it('falls back to the layout viewport for invalid metrics', () => {
+    expect(resolveVisibleViewportHeight(800)).toBe(800);
+    expect(resolveVisibleViewportHeight(800, { height: Number.NaN, scale: 1 })).toBe(800);
   });
 });

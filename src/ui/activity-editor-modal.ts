@@ -18,7 +18,7 @@ export class ActivityEditorModal extends Modal {
     private readonly onCreated: (id: string) => void,
   ) {
     super(plugin.app);
-    this.mobileViewport = new MobileModalViewport(this.containerEl, this.contentEl);
+    this.mobileViewport = new MobileModalViewport(this.modalEl, this.contentEl);
   }
 
   override onOpen(): void {

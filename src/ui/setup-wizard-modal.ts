@@ -35,7 +35,7 @@ export class SetupWizardModal extends Modal {
     this.folder = plugin.moodSettings.dailyNote.manual.folder;
     this.format = plugin.moodSettings.dailyNote.manual.format;
     this.templatePath = plugin.moodSettings.dailyNote.manual.templatePath ?? '';
-    this.mobileViewport = new MobileModalViewport(this.containerEl, this.contentEl);
+    this.mobileViewport = new MobileModalViewport(this.modalEl, this.contentEl);
   }
 
   override onOpen(): void { this.modalEl.addClass('mood-journal-dialog'); this.setTitle(t(this.locale, 'setup.title')); void this.loadCoreSettings(); this.render(); this.mobileViewport.attach(); }
