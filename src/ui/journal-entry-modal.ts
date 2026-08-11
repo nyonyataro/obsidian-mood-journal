@@ -6,12 +6,12 @@ import type { ActivityDefinition, JournalDraft, MoodScore } from '../types';
 import { t } from '../i18n';
 import { MoodJournalError } from '../utils/errors';
 import { ActivityEditorModal } from './activity-editor-modal';
-import { copyToClipboard } from '../services/clipboard-service';
 import { generateCallout } from '../markdown/callout-generator';
 import { localDateInputValue, localTimeInputValue, parseManualDateTime } from '../utils/datetime';
 import { DiscardConfirmModal } from './discard-confirm-modal';
 import { isDraftDirty } from '../domain/journal-draft';
 import { MobileModalViewport } from './mobile-modal-viewport';
+import { MarkdownPreviewModal } from './markdown-preview-modal';
 
 const emptyDraft = (): JournalDraft => ({
   moodScore: null,
@@ -153,7 +153,7 @@ export class JournalEntryModal extends Modal {
       error.createDiv({ text: this.error });
       const actions = error.createDiv({ cls: 'mood-journal-error-actions' });
       actions.createEl('button', { text: t(locale, 'entry.retry') }).onclick = () => void this.save();
-      actions.createEl('button', { text: t(locale, 'entry.copyMarkdown') }).onclick = () => void this.copyMarkdown();
+      actions.createEl('button', { text: t(locale, 'entry.showMarkdown') }).onclick = () => this.showMarkdown();
     }
 
     const footer = contentEl.createDiv({ cls: 'mood-journal-footer' });
@@ -183,7 +183,7 @@ export class JournalEntryModal extends Modal {
   private renderTags(contentEl: HTMLElement, locale: 'ja' | 'en'): void {
     const header = contentEl.createDiv({ cls: 'mood-journal-activities-header' });
     header.createEl('label', { text: t(locale, 'entry.activities') });
-    header.createEl('button', { text: `+ ${t(locale, 'entry.addActivity')}` }).onclick = () =>
+    header.createEl('button', { text: `+ ${t(locale, 'entry.addActivity')}`, cls: 'mood-journal-activity-add-button' }).onclick = () =>
       new ActivityEditorModal(this.plugin, (id) => {
         const tag = this.plugin.moodSettings.activities.find((item) => item.id === id);
         if (tag !== undefined) {
@@ -296,19 +296,13 @@ export class JournalEntryModal extends Modal {
     }
   }
 
-  private async copyMarkdown(): Promise<void> {
+  private showMarkdown(): void {
     if (this.draft.moodScore === null) return;
     const occurredAt =
       this.draft.dateTimeMode === 'manual'
         ? parseManualDateTime(this.draft.manualDate, this.draft.manualTime)
         : new Date();
     if (occurredAt === null) return;
-    try {
-      await copyToClipboard(generateCallout(this.plugin.journalService.createEntry(this.draft, occurredAt)));
-      new Notice(t(this.plugin.moodSettings.locale, 'notice.copied'));
-    } catch (cause) {
-      this.error = cause instanceof MoodJournalError ? cause.code : 'CLIPBOARD_FAILED';
-      this.render();
-    }
+    new MarkdownPreviewModal(this.app, this.plugin.moodSettings.locale, generateCallout(this.plugin.journalService.createEntry(this.draft, occurredAt))).open();
   }
 }
