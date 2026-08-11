@@ -158,6 +158,32 @@
   margin-top: var(--size-4-8);
 }
 
+.mood-journal-settings .setting-item,
+.mood-journal-settings .setting-item-control {
+  flex-wrap: wrap;
+}
+
+.mood-journal-settings .setting-item-info,
+.mood-journal-settings .setting-item-control {
+  min-width: 0;
+}
+
+.mood-journal-settings .setting-item-control input,
+.mood-journal-settings .setting-item-control select {
+  max-width: 100%;
+}
+
+.mood-journal-link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
+.mood-journal-link-button-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
 .mood-journal-add-tag-button {
   margin-left: auto;
 }

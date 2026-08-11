@@ -78,6 +78,65 @@ describe('markdown', () => {
   it('coexists across languages and reuses the section after switching back', () => { const englishEntry = { ...entry, locale: 'en' as const, id: '2026-07-20T20:00:00.000+09:00', occurredAt: '2026-07-20T20:00:00.000+09:00', moodLabel: 'Good' }; const laterJapanese = { ...entry, id: '2026-07-20T21:00:00.000+09:00', occurredAt: '2026-07-20T21:00:00.000+09:00' }; const both = insertJournalEntry(insertJournalEntry('', entry), englishEntry); const result = insertJournalEntry(both, laterJapanese); expect(result.match(/^## 日記$/gmu)).toHaveLength(1); expect(result.match(/^## Journal$/gmu)).toHaveLength(1); expect(result.indexOf(entry.id)).toBeLessThan(result.indexOf(laterJapanese.id)); expect(result.indexOf(laterJapanese.id)).toBeLessThan(result.indexOf(englishEntry.id)); });
   it('places a future entry at the end without reordering existing entries', () => { const early = { ...entry, id: '2026-07-20T10:00:00.000+09:00', occurredAt: '2026-07-20T10:00:00.000+09:00' }; const future = { ...entry, id: '2026-07-20T22:00:00.000+09:00', occurredAt: '2026-07-20T22:00:00.000+09:00' }; const result = insertJournalEntry(`## 日記\n\n${generateCallout(early)}\n`, future); expect(result.indexOf(early.id)).toBeLessThan(result.indexOf(future.id)); });
   it('does not move non-log Markdown around a middle insertion', () => { const early = { ...entry, id: '2026-07-20T10:00:00.000+09:00', occurredAt: '2026-07-20T10:00:00.000+09:00' }; const late = { ...entry, id: '2026-07-20T20:00:00.000+09:00', occurredAt: '2026-07-20T20:00:00.000+09:00' }; const result = insertJournalEntry(`## 日記\n\n${generateCallout(early)}\n\nmanual paragraph\n\n${generateCallout(late)}\n`, entry); expect(result.indexOf('manual paragraph')).toBeGreaterThan(result.indexOf(early.id)); expect(result.indexOf('manual paragraph')).toBeLessThan(result.indexOf(late.id)); });
+  it('places a later log after the last valid log and before free-form Markdown', () => {
+    const early = { ...entry, id: '2026-07-20T09:00:00.000+09:00', occurredAt: '2026-07-20T09:00:00.000+09:00' };
+    const later = { ...entry, id: '2026-07-20T18:00:00.000+09:00', occurredAt: '2026-07-20T18:00:00.000+09:00' };
+    const initial = `front\n\n## 日記\n\n${generateCallout(early)}\n\nfree text\n\n`;
+    expect(insertJournalEntry(initial, later)).toBe(`front\n\n## 日記\n\n${generateCallout(early)}\n\n${generateCallout(later)}\n\nfree text\n\n`);
+  });
+  it('places the first valid log directly below an existing heading', () => {
+    const initial = '---\ntitle: keep\n---\n## 日記\n\nfree text\n\n';
+    expect(insertJournalEntry(initial, entry)).toBe(`---\ntitle: keep\n---\n## 日記\n\n${generateCallout(entry)}\n\nfree text\n\n`);
+  });
+  it('uses the last document log as the anchor when existing logs are separated', () => {
+    const early = { ...entry, id: '2026-07-20T09:00:00.000+09:00', occurredAt: '2026-07-20T09:00:00.000+09:00' };
+    const middle = { ...entry, id: '2026-07-20T15:00:00.000+09:00', occurredAt: '2026-07-20T15:00:00.000+09:00' };
+    const later = { ...entry, id: '2026-07-20T18:00:00.000+09:00', occurredAt: '2026-07-20T18:00:00.000+09:00' };
+    const initial = `## 日記\n\n${generateCallout(early)}\n\ntext A\n\n${generateCallout(middle)}\n\ntext B\n`;
+    expect(insertJournalEntry(initial, later)).toBe(`## 日記\n\n${generateCallout(early)}\n\ntext A\n\n${generateCallout(middle)}\n\n${generateCallout(later)}\n\ntext B\n`);
+  });
+  it('inserts before the first later log without moving separated Markdown', () => {
+    const early = { ...entry, id: '2026-07-20T09:00:00.000+09:00', occurredAt: '2026-07-20T09:00:00.000+09:00' };
+    const middle = { ...entry, id: '2026-07-20T15:00:00.000+09:00', occurredAt: '2026-07-20T15:00:00.000+09:00' };
+    const inserted = { ...entry, id: '2026-07-20T12:00:00.000+09:00', occurredAt: '2026-07-20T12:00:00.000+09:00' };
+    const initial = `## 日記\n\n${generateCallout(early)}\n\ntext A\n\n${generateCallout(middle)}\n\ntext B\n`;
+    expect(insertJournalEntry(initial, inserted)).toBe(`## 日記\n\n${generateCallout(early)}\n\ntext A\n\n${generateCallout(inserted)}\n\n${generateCallout(middle)}\n\ntext B\n`);
+  });
+  it('keeps same-time insertion stable and before following Markdown', () => {
+    const old = { ...entry, memo: 'old' };
+    const next = { ...entry, memo: 'new' };
+    const initial = `## 日記\n\n${generateCallout(old)}\n\nfree text\n`;
+    expect(insertJournalEntry(initial, next)).toBe(`## 日記\n\n${generateCallout(old)}\n\n${generateCallout(next)}\n\nfree text\n`);
+  });
+  it('does not repair out-of-order existing logs', () => {
+    const late = { ...entry, id: '2026-07-20T20:00:00.000+09:00', occurredAt: '2026-07-20T20:00:00.000+09:00' };
+    const early = { ...entry, id: '2026-07-20T09:00:00.000+09:00', occurredAt: '2026-07-20T09:00:00.000+09:00' };
+    const inserted = { ...entry, id: '2026-07-20T21:00:00.000+09:00', occurredAt: '2026-07-20T21:00:00.000+09:00' };
+    const initial = `## 日記\n\n${generateCallout(late)}\n\n${generateCallout(early)}\n\nfree text\n`;
+    expect(insertJournalEntry(initial, inserted)).toBe(`## 日記\n\n${generateCallout(late)}\n\n${generateCallout(early)}\n\n${generateCallout(inserted)}\n\nfree text\n`);
+  });
+  it('keeps malformed logs byte-for-byte while inserting above them', () => {
+    const broken = '> [!mood-log] broken\n> <!-- mood-score: 4 -->';
+    const initial = `## 日記\n\n${broken}\n\nfree text\n`;
+    expect(insertJournalEntry(initial, entry)).toBe(`## 日記\n\n${generateCallout(entry)}\n\n${broken}\n\nfree text\n`);
+  });
+  it('preserves mixed line endings and trailing blank lines outside the insertion', () => {
+    const early = { ...entry, id: '2026-07-20T09:00:00.000+09:00', occurredAt: '2026-07-20T09:00:00.000+09:00' };
+    const later = { ...entry, id: '2026-07-20T18:00:00.000+09:00', occurredAt: '2026-07-20T18:00:00.000+09:00' };
+    const initial = `## 日記\r\n\r\n${generateCallout(early, '\r\n')}\r\n\r\nfree text\n\n`;
+    expect(insertJournalEntry(initial, later)).toBe(`## 日記\r\n\r\n${generateCallout(early, '\r\n')}\r\n\r\n${generateCallout(later, '\r\n')}\r\n\r\nfree text\n\n`);
+  });
+  it('preserves a note without a final newline while adding only the new block', () => {
+    const early = { ...entry, id: '2026-07-20T09:00:00.000+09:00', occurredAt: '2026-07-20T09:00:00.000+09:00' };
+    const later = { ...entry, id: '2026-07-20T18:00:00.000+09:00', occurredAt: '2026-07-20T18:00:00.000+09:00' };
+    const initial = `## 日記\n\n${generateCallout(early)}`;
+    expect(insertJournalEntry(initial, later)).toBe(`## 日記\n\n${generateCallout(early)}\n\n${generateCallout(later)}\n`);
+  });
+  it('ignores false headings while inserting only into the active English section', () => {
+    const english = { ...entry, locale: 'en' as const, moodLabel: 'Good' };
+    const initial = '```md\n## Journal\n```\n> ## Journal\n<!-- ## Journal -->\n## Journal\n\nEnglish text\n\n## 日記\n\n日本語\n';
+    expect(insertJournalEntry(initial, english)).toBe(`\`\`\`md\n## Journal\n\`\`\`\n> ## Journal\n<!-- ## Journal -->\n## Journal\n\n${generateCallout(english)}\n\nEnglish text\n\n## 日記\n\n日本語\n`);
+  });
   it('uses the single existing journal section even when it is empty', () => { const result = insertJournalEntry('## 日記\n\n## Other\n', entry); expect(result).toContain(`## 日記\n\n${generateCallout(entry)}\n\n## Other`); });
   it('preserves legacy activity tags without rewriting them', () => { const legacy = '> [!mood-log] 10:00 🙂 良い\n> #日記 #activity/プライベート/散歩\n> <!-- mood-log-id: 2026-07-20T10:00:00.000+09:00 -->\n> <!-- mood-score: 4 -->'; const result = insertJournalEntry(`## 日記\n\n${legacy}\n`, entry); expect(result).toContain(legacy); });
   it('preserves LF and CRLF detection and ends with exactly one newline', () => { expect(newlineOf('a\r\nb')).toBe('\r\n'); expect(newlineOf('a\nb')).toBe('\n'); expect(withFinalNewline('a\n\n', '\n')).toBe('a\n'); expect(withFinalNewline('a\r\n\r\n', '\r\n')).toBe('a\r\n'); });
