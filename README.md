@@ -39,7 +39,7 @@ The tags are normal Obsidian nested tags. Mood Journal does not add or modify Pr
 
 ## Privacy
 
-Mood Journal makes no network requests and has no telemetry or analytics. It does not open saved notes automatically.
+Mood Journal makes no network requests during plugin operation and has no telemetry or analytics. External pages open only when you explicitly follow a link. The plugin does not open saved notes automatically.
 
 ## Manual installation
 
@@ -62,6 +62,8 @@ See the [release checklist](docs/release-checklist.md) before creating a beta or
 Report reproducible issues with Obsidian version, platform, and safe steps to reproduce. Do not include private journal content.
 
 Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md) and include a redacted Markdown sample only when it is needed to reproduce the issue.
+
+If Mood Journal makes your daily reflection a little easier, you can optionally [support its development with a coffee](https://buymeacoffee.com/nyonyataro) ☕️ Mood Journal remains completely free, and donations are handled by Buy Me a Coffee without unlocking additional features.
 
 ## License
 

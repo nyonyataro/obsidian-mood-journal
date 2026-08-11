@@ -10,6 +10,8 @@ Run this plan in separate test vaults. Do not use a personal vault for destructi
 
 For each fixture, create notes with no journal heading, one empty Japanese heading, one empty English heading, both language headings, valid logs, a malformed log, duplicate same-language headings, a code-fence false heading, and a large journal section.
 
+Also prepare notes with a valid log followed by free-form Markdown, logs already separated by free-form Markdown, and a journal heading followed only by free-form Markdown.
+
 ## Desktop
 
 - Open through the ribbon and command palette.
@@ -35,6 +37,11 @@ For each fixture, create notes with no journal heading, one empty Japanese headi
 - Verify existing `#activity/...` lines are not removed, replaced, or migrated after a new save.
 - Verify newly generated Markdown never contains `#activity/`.
 - Verify Markdown copy follows the current language and matches the normal save format.
+- Verify a later entry is inserted immediately after the last valid log and before following free-form Markdown.
+- Verify an entry between two existing times is inserted before the first later log without moving intervening free-form Markdown.
+- Verify the first log in an existing journal section is inserted directly below the heading without changing the free-form Markdown.
+- Verify separated or out-of-order existing logs are not moved or repaired when a new entry is saved.
+- Compare the note before and after each insertion and verify every character outside the inserted block is unchanged, including CRLF/LF and trailing blank lines.
 - Verify the settings screen shows labels and visible/hidden state without `#activity/...` or any complete generated tag path.
 - Verify the setup preview follows the selected language.
 - Verify Japanese and English screenshots show the correct localized heading, root tag, mood label, and nested activity tag.
@@ -49,6 +56,14 @@ For each fixture, create notes with no journal heading, one empty Japanese headi
 - Verify the setup wizard and tag editor inputs remain visible above the keyboard on both Android and iOS.
 - Verify Japanese and English saves and Markdown copy on Android.
 - Verify PC-to-mobile and mobile-to-PC sync without overwriting note content.
+
+## Funding and privacy
+
+- Verify the README support link and Obsidian funding action open `https://buymeacoffee.com/nyonyataro` only after an explicit click.
+- Verify normal plugin startup, journal entry, Markdown copy, and settings use make no network requests.
+- Verify the Mood Journal settings screen shows one Links row with icon-and-text Feedback and Donate buttons, matching the Todoist Sync visual pattern.
+- Verify Feedback opens `https://github.com/nyonyataro/obsidian-mood-journal/issues/new/choose` and Donate opens `https://buymeacoffee.com/nyonyataro` only after an explicit click.
+- Verify no donation prompt or popup appears in the journal entry modal.
 
 ## Safety
 
