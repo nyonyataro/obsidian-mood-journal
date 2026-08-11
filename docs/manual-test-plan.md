@@ -64,6 +64,8 @@ Also prepare notes with a valid log followed by free-form Markdown, logs already
 - Verify the Mood Journal settings screen shows one Links row with icon-and-text Feedback and Donate buttons, matching the Todoist Sync visual pattern.
 - Verify Feedback opens `https://github.com/nyonyataro/obsidian-mood-journal/issues/new/choose` and Donate opens `https://buymeacoffee.com/nyonyataro` only after an explicit click.
 - Verify no donation prompt or popup appears in the journal entry modal.
+- Force a save error, open Show Markdown, and verify generated Markdown can be selected without granting clipboard access.
+- In manual daily-note mode, enter a folder and template path directly; verify paths are validated without scanning or listing unrelated Vault files.
 
 ## Safety
 

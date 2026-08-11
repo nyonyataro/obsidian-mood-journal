@@ -1,4 +1,4 @@
-import { AbstractInputSuggest, Modal, Notice, TFile, TFolder, moment } from 'obsidian';
+import { Modal, Notice, TFile, moment } from 'obsidian';
 import type MoodJournalPlugin from '../main';
 import type { Locale, ManualDailyNoteSettings } from '../types';
 import { t } from '../i18n';
@@ -7,13 +7,6 @@ import { defaultSettings } from '../settings/defaults';
 import { CoreDailyNoteConfigReader } from '../services/daily-note-config-reader';
 import { generateDailyNotePath } from '../services/daily-note-path';
 import { MobileModalViewport } from './mobile-modal-viewport';
-
-class SetupPathSuggest extends AbstractInputSuggest<string> {
-  constructor(plugin: MoodJournalPlugin, private readonly input: HTMLInputElement, private readonly values: () => string[]) { super(plugin.app, input); }
-  protected getSuggestions(query: string): string[] { return this.values().filter((value) => value.toLocaleLowerCase().includes(query.toLocaleLowerCase())).slice(0, 30); }
-  renderSuggestion(value: string, el: HTMLElement): void { el.setText(value); }
-  override selectSuggestion(value: string): void { this.setValue(value); this.input.dispatchEvent(new Event('input', { bubbles: true })); }
-}
 
 export class SetupWizardModal extends Modal {
   private page = 1;
@@ -26,7 +19,6 @@ export class SetupWizardModal extends Modal {
   private coreChecked = false;
   private error = '';
   private saving = false;
-  private readonly suggesters: SetupPathSuggest[] = [];
   private readonly mobileViewport: MobileModalViewport;
 
   constructor(private readonly plugin: MoodJournalPlugin) {
@@ -39,21 +31,15 @@ export class SetupWizardModal extends Modal {
   }
 
   override onOpen(): void { this.modalEl.addClass('mood-journal-dialog'); this.setTitle(t(this.locale, 'setup.title')); void this.loadCoreSettings(); this.render(); this.mobileViewport.attach(); }
-  override onClose(): void { this.mobileViewport.detach(); this.closeSuggesters(); this.contentEl.empty(); }
+  override onClose(): void { this.mobileViewport.detach(); this.contentEl.empty(); }
   private async loadCoreSettings(): Promise<void> {
     try { this.coreSettings = await new CoreDailyNoteConfigReader(this.plugin.app.vault).readCoreSettings(); this.followCore = true; }
     catch { this.followCore = false; }
     finally { this.coreChecked = true; if (this.modalEl.isConnected) this.render(); }
   }
-  private folderPaths(): string[] { return this.plugin.app.vault.getAllLoadedFiles().filter((file): file is TFolder => file instanceof TFolder).map((folder) => folder.path).filter(Boolean); }
-  private templatePaths(): string[] { return this.plugin.app.vault.getAllLoadedFiles().filter((file): file is TFile => file instanceof TFile && file.extension === 'md').map((file) => file.path); }
   private preview(settings: ManualDailyNoteSettings): string { try { return generateDailyNotePath(settings, (format) => moment.default().format(format)); } catch { return '—'; } }
-  private input(parent: HTMLElement, value: string, placeholder: string, update: (value: string) => void, suggestions?: () => string[]): void {
-    const field = parent.createEl('input', { attr: { value, placeholder } }); field.oninput = () => update(field.value); if (suggestions !== undefined) this.suggesters.push(new SetupPathSuggest(this.plugin, field, suggestions));
-  }
-  private closeSuggesters(): void { for (const suggester of this.suggesters) suggester.close(); this.suggesters.length = 0; }
+  private input(parent: HTMLElement, value: string, placeholder: string, update: (value: string) => void): void { const field = parent.createEl('input', { attr: { value, placeholder } }); field.oninput = () => update(field.value); }
   private render(): void {
-    this.closeSuggesters();
     const el = this.contentEl; el.empty(); el.addClass('mood-journal-modal'); this.setTitle(t(this.locale, 'setup.title')); const body = el.createDiv({ cls: 'mood-journal-modal-body' });
     if (this.page === 1) {
       body.createEl('p', { text: t(this.locale, 'setup.language') });
@@ -64,9 +50,9 @@ export class SetupWizardModal extends Modal {
       if (this.coreSettings !== null) body.createEl('p', { text: `${t(this.locale, 'setup.detected')}: ${this.coreSettings.folder || t(this.locale, 'setup.vaultRoot')} / ${this.coreSettings.format}` });
       for (const mode of [true, false]) { const selected = this.followCore === mode; const button = body.createEl('button', { text: `${selected ? '✓ ' : ''}${t(this.locale, mode ? 'setup.follow' : 'setup.manual')}`, cls: 'mood-journal-choice' }); button.disabled = mode && this.coreSettings === null; button.setAttribute('aria-pressed', String(selected)); button.onclick = () => { this.followCore = mode; this.render(); }; }
       if (!this.followCore) {
-        this.input(body, this.folder, t(this.locale, 'setup.folder'), (value) => { this.folder = value; }, () => this.folderPaths());
+        this.input(body, this.folder, t(this.locale, 'setup.folder'), (value) => { this.folder = value; });
         this.input(body, this.format, t(this.locale, 'setup.format'), (value) => { this.format = value; });
-        this.input(body, this.templatePath, t(this.locale, 'setup.template'), (value) => { this.templatePath = value; }, () => this.templatePaths());
+        this.input(body, this.templatePath, t(this.locale, 'setup.template'), (value) => { this.templatePath = value; });
       }
       const previewSettings = this.followCore && this.coreSettings !== null ? this.coreSettings : { folder: this.folder, format: this.format, templatePath: this.templatePath || null };
       body.createEl('p', { text: `${t(this.locale, 'setup.preview')}: ${this.preview(previewSettings)}` });
