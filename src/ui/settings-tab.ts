@@ -1,4 +1,4 @@
-import { Notice, PluginSettingTab, Setting, TFile, moment, setIcon, type SettingDefinitionItem } from 'obsidian';
+import { Notice, PluginSettingTab, Setting, SettingPage, TFile, moment, setIcon, type SettingDefinitionItem } from 'obsidian';
 import type MoodJournalPlugin from '../main';
 import { t } from '../i18n';
 import { LABELS, MOODS } from '../domain/mood';
@@ -12,11 +12,21 @@ import { generateDailyNotePath } from '../services/daily-note-path';
 export class MoodJournalSettingTab extends PluginSettingTab {
   private coreSettings: ManualDailyNoteSettings | null = null;
   private coreError = false;
+  private settingsPage: MoodJournalSettingsPage | null = null;
   constructor(private readonly plugin: MoodJournalPlugin) { super(plugin.app, plugin); }
-  override getSettingDefinitions(): SettingDefinitionItem[] { return []; }
-  override display(): void { this.renderSettings(this.containerEl); }
-  override hide(): void {}
-  private renderSettings(containerEl: HTMLElement): void {
+  override getSettingDefinitions(): SettingDefinitionItem[] {
+    return [{
+      type: 'page',
+      name: t(this.plugin.moodSettings.locale, 'settings.title'),
+      page: () => {
+        const page = new MoodJournalSettingsPage(this);
+        this.settingsPage = page;
+        return page;
+      }
+    }];
+  }
+  getSettingsTitle(): string { return t(this.plugin.moodSettings.locale, 'settings.title'); }
+  renderSettings(containerEl: HTMLElement): void {
     const locale = this.plugin.moodSettings.locale; containerEl.empty(); containerEl.addClass('mood-journal-settings');
     const links = new Setting(containerEl).setName(t(locale, 'settings.links'));
     this.linkButton(links.controlEl, t(locale, 'settings.feedback'), 'github', 'https://github.com/nyonyataro/obsidian-mood-journal/issues/new/choose');
@@ -58,5 +68,12 @@ export class MoodJournalSettingTab extends PluginSettingTab {
   private async saveTextValue(value: string, update: (value: string) => Promise<void>): Promise<void> { try { await update(value); this.plugin.scheduleSettingsSave(); } catch { new Notice(t(this.plugin.moodSettings.locale, 'settings.invalidValue')); this.refreshSettings(); } }
   private tagSetting(container: HTMLElement, id: string, label: string, hidden: boolean, child: boolean): void { const locale = this.plugin.moodSettings.locale; let isHidden = hidden; const description = (): string => t(locale, isHidden ? 'settings.hidden' : 'settings.visible'); const setting = new Setting(container).setName(child ? `↳ ${label}` : label).setDesc(description()).addText((text) => { text.setValue(label); text.inputEl.addEventListener('blur', () => void this.renameTag(id, label, text.inputEl.value)); }).addButton((button) => button.setButtonText(isHidden ? t(locale, 'settings.restore') : t(locale, 'settings.hide')).onClick(async () => { isHidden = !isHidden; this.plugin.moodSettings.activities = new ActivityService().setHidden(this.plugin.moodSettings.activities, id, isHidden, new Date().toISOString()); await this.plugin.saveSettings(); setting.setDesc(description()); button.setButtonText(isHidden ? t(locale, 'settings.restore') : t(locale, 'settings.hide')); setting.settingEl.toggleClass('mood-journal-tag-is-hidden', isHidden); })); setting.settingEl.toggleClass('mood-journal-tag-is-hidden', isHidden); if (child) setting.settingEl.addClass('mood-journal-tag-child'); }
   private async renameTag(id: string, previous: string, value: string): Promise<void> { if (value === previous) return; try { this.plugin.moodSettings.activities = new ActivityService().rename(this.plugin.moodSettings.activities, id, value, new Date().toISOString()); await this.plugin.saveSettings(); this.refreshSettings(); } catch { new Notice(t(this.plugin.moodSettings.locale, 'settings.tagRenameError')); this.refreshSettings(); } }
-  private refreshSettings(): void { const update = (this as unknown as { update?: () => void }).update; if (update) update.call(this); else this.display(); }
+  clearSettingsPage(page: MoodJournalSettingsPage): void { if (this.settingsPage === page) this.settingsPage = null; }
+  private refreshSettings(): void { if (this.settingsPage !== null) this.settingsPage.display(); else this.update(); }
+}
+
+class MoodJournalSettingsPage extends SettingPage {
+  constructor(private readonly tab: MoodJournalSettingTab) { super(); }
+  override display(): void { this.title = this.tab.getSettingsTitle(); this.tab.renderSettings(this.containerEl); }
+  override hide(): void { this.tab.clearSettingsPage(this); }
 }
