@@ -25,13 +25,6 @@ export default defineConfig([
     }
   },
   {
-    files: ['src/ui/settings-tab.ts'],
-    rules: {
-      '@typescript-eslint/no-deprecated': 'off',
-      'obsidianmd/settings-tab/prefer-setting-definitions': 'off'
-    }
-  },
-  {
     files: ['src/services/clipboard-service.ts'],
     rules: {
       '@typescript-eslint/no-deprecated': 'off'
