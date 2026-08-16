@@ -23,7 +23,7 @@ export class ActivityEditorModal extends Modal {
 
   override onOpen(): void {
     this.modalEl.addClass('mood-journal-dialog');
-    this.setTitle(t(this.plugin.moodSettings.locale, 'tagEditor.title'));
+    this.setTitle(t(this.plugin.locale, 'tagEditor.title'));
     this.render();
     this.mobileViewport.attach();
   }
@@ -35,7 +35,7 @@ export class ActivityEditorModal extends Modal {
 
   private render(): void {
     const el = this.contentEl;
-    const locale = this.plugin.moodSettings.locale;
+    const locale = this.plugin.locale;
     el.empty();
     el.addClass('mood-journal-modal');
     const body = el.createDiv({ cls: 'mood-journal-modal-body' });
@@ -119,7 +119,7 @@ export class ActivityEditorModal extends Modal {
       this.close();
     } catch {
       this.plugin.moodSettings.activities = previousActivities;
-      this.error = t(this.plugin.moodSettings.locale, 'tagEditor.error');
+      this.error = t(this.plugin.locale, 'tagEditor.error');
     } finally {
       this.saving = false;
       if (this.modalEl.isConnected) this.render();

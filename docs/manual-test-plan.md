@@ -46,6 +46,15 @@ Also prepare notes with a valid log followed by free-form Markdown, logs already
 - Verify the setup preview follows the selected language.
 - Verify Japanese and English screenshots show the correct localized heading, root tag, mood label, and nested activity tag.
 
+## Dashboard visualization
+
+- Open the dashboard and verify the daily-average line is visible in 30-day, 90-day, and all-time ranges.
+- Verify missing days are connected with dashed segments and recorded days use solid segments.
+- Verify a point at score 5 is fully visible at the top edge and a point at score 1 is fully visible at the bottom edge.
+- Verify the first and last recorded points are fully visible at the left and right edges.
+- Verify the distribution is ordered from score 5 to score 1 in both Japanese and English.
+- Resize the dashboard to a narrow pane and repeat the edge-point and range checks.
+
 ## Android and iOS
 
 - Verify the modal width, 44px targets, software keyboard, long memo scrolling, tag search, date toggle, and fixed save action.

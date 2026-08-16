@@ -1,7 +1,7 @@
 import { Modal, Notice, TFile, moment } from 'obsidian';
 import type MoodJournalPlugin from '../main';
-import type { Locale, ManualDailyNoteSettings } from '../types';
-import { t } from '../i18n';
+import type { Locale, LocalePreference, ManualDailyNoteSettings } from '../types';
+import { isLocalePreference, resolveLocale, t } from '../i18n';
 import { journalHeading, journalRoot } from '../markdown/journal-locale';
 import { defaultSettings } from '../settings/defaults';
 import { CoreDailyNoteConfigReader } from '../services/daily-note-config-reader';
@@ -10,7 +10,7 @@ import { MobileModalViewport } from './mobile-modal-viewport';
 
 export class SetupWizardModal extends Modal {
   private page = 1;
-  private locale: Locale;
+  private localePreference: LocalePreference;
   private followCore = false;
   private folder = '';
   private format = 'YYYY-MM-DD';
@@ -21,9 +21,11 @@ export class SetupWizardModal extends Modal {
   private saving = false;
   private readonly mobileViewport: MobileModalViewport;
 
+  private get locale(): Locale { return resolveLocale(this.localePreference); }
+
   constructor(private readonly plugin: MoodJournalPlugin) {
     super(plugin.app);
-    this.locale = plugin.moodSettings.locale ?? (navigator.language.toLowerCase().startsWith('ja') ? 'ja' : 'en');
+    this.localePreference = isLocalePreference(plugin.moodSettings.locale) ? plugin.moodSettings.locale : 'auto';
     this.folder = plugin.moodSettings.dailyNote.manual.folder;
     this.format = plugin.moodSettings.dailyNote.manual.format;
     this.templatePath = plugin.moodSettings.dailyNote.manual.templatePath ?? '';
@@ -43,7 +45,7 @@ export class SetupWizardModal extends Modal {
     const el = this.contentEl; el.empty(); el.addClass('mood-journal-modal'); this.setTitle(t(this.locale, 'setup.title')); const body = el.createDiv({ cls: 'mood-journal-modal-body' });
     if (this.page === 1) {
       body.createEl('p', { text: t(this.locale, 'setup.language') });
-      for (const locale of ['ja', 'en'] as Locale[]) { const selected = this.locale === locale; const button = body.createEl('button', { text: `${selected ? '✓ ' : ''}${locale === 'ja' ? '日本語' : 'English'}`, cls: 'mood-journal-choice' }); button.setAttribute('aria-pressed', String(selected)); button.onclick = () => { this.locale = locale; this.render(); }; }
+      for (const preference of ['auto', 'ja', 'en'] as LocalePreference[]) { const selected = this.localePreference === preference; const label = preference === 'auto' ? t(this.locale, 'language.auto') : preference === 'ja' ? t(this.locale, 'language.japanese') : t(this.locale, 'language.english'); const button = body.createEl('button', { text: `${selected ? '✓ ' : ''}${label}`, cls: 'mood-journal-choice' }); button.setAttribute('aria-pressed', String(selected)); button.onclick = () => { this.localePreference = preference; this.render(); }; }
     } else if (this.page === 2) {
       body.createEl('p', { text: t(this.locale, 'setup.daily') });
       if (!this.coreChecked) body.createEl('p', { text: t(this.locale, 'setup.checking') });
@@ -57,7 +59,7 @@ export class SetupWizardModal extends Modal {
       const previewSettings = this.followCore && this.coreSettings !== null ? this.coreSettings : { folder: this.folder, format: this.format, templatePath: this.templatePath || null };
       body.createEl('p', { text: `${t(this.locale, 'setup.preview')}: ${this.preview(previewSettings)}` });
     } else {
-      const settings = defaultSettings(this.locale); const daily = this.followCore && this.coreSettings !== null ? this.coreSettings : { folder: this.folder, format: this.format, templatePath: this.templatePath || null };
+      const settings = defaultSettings(this.localePreference, this.locale); const daily = this.followCore && this.coreSettings !== null ? this.coreSettings : { folder: this.folder, format: this.format, templatePath: this.templatePath || null };
       body.createEl('p', { text: `${t(this.locale, 'setup.preview')}: ${this.preview(daily)}` });
       body.createEl('p', { text: `${t(this.locale, 'setup.initialTags')}: ${settings.activities.map((activity) => activity.label).join(', ')}` });
       body.createEl('p', { text: t(this.locale, 'setup.saveExample') }); body.createEl('pre', { text: `${journalHeading(this.locale)}\n\n> [!mood-log] 12:00 🙂\n> ${journalRoot(this.locale)}` });
@@ -75,7 +77,7 @@ export class SetupWizardModal extends Modal {
       if (this.templatePath.trim()) { const target = this.plugin.app.metadataCache.getFirstLinkpathDest(this.templatePath, '') ?? this.plugin.app.vault.getAbstractFileByPath(this.templatePath.endsWith('.md') ? this.templatePath : `${this.templatePath}.md`); if (!(target instanceof TFile)) { this.error = t(this.locale, 'error.templateMissing'); this.render(); return; } }
     }
     if (this.page < 3) { this.page += 1; this.render(); return; }
-    const settings = defaultSettings(this.locale); settings.setupCompleted = true; settings.dailyNote.mode = this.followCore ? 'follow-core' : 'manual'; settings.dailyNote.manual = { folder: this.folder, format: this.format, templatePath: this.templatePath || null }; settings.activities = this.plugin.moodSettings.activities;
+    const settings = defaultSettings(this.localePreference, this.locale); settings.setupCompleted = true; settings.dailyNote.mode = this.followCore ? 'follow-core' : 'manual'; settings.dailyNote.manual = { folder: this.folder, format: this.format, templatePath: this.templatePath || null }; settings.activities = this.plugin.moodSettings.activities;
     const previousSettings = this.plugin.moodSettings;
     this.saving = true; this.render();
     try { this.plugin.moodSettings = settings; await this.plugin.saveSettings(); this.close(); new Notice(t(this.locale, 'notice.saved')); }
