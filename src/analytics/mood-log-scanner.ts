@@ -1,4 +1,3 @@
-import type { Vault } from 'obsidian';
 import { isMoodScore } from '../domain/mood';
 import type { MoodLogRecord } from '../types';
 
@@ -11,6 +10,15 @@ const SCORE_METADATA = /^> <!-- mood-score: (.*?) -->$/u;
 interface FenceState {
   character: '`' | '~';
   length: number;
+}
+
+interface MarkdownFile {
+  path: string;
+}
+
+interface MarkdownVault {
+  getMarkdownFiles(): MarkdownFile[];
+  cachedRead(file: MarkdownFile): Promise<string>;
 }
 
 function getFence(line: string): { marker: string; rest: string } | null {
@@ -72,7 +80,7 @@ export function scanMoodLogsFromMarkdown(content: string, sourcePath: string): M
 }
 
 export class MoodLogScanner {
-  constructor(private readonly vault: Vault) {}
+  constructor(private readonly vault: MarkdownVault) {}
 
   async scan(): Promise<MoodLogRecord[]> {
     const records: MoodLogRecord[] = [];

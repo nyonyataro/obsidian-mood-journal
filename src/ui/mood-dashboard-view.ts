@@ -19,6 +19,10 @@ Chart.register(CategoryScale, LineController, LineElement, LinearScale, PointEle
 
 export const VIEW_TYPE_MOOD_DASHBOARD = 'mood-journal-dashboard';
 
+interface MoodChartInstance {
+  destroy(): void;
+}
+
 const RANGES: readonly { value: MoodDashboardRange; label: 'dashboard.range30' | 'dashboard.range90' | 'dashboard.rangeAll' }[] = [
   { value: '30d', label: 'dashboard.range30' },
   { value: '90d', label: 'dashboard.range90' },
@@ -26,7 +30,7 @@ const RANGES: readonly { value: MoodDashboardRange; label: 'dashboard.range30' |
 ];
 
 export class MoodDashboardView extends ItemView {
-  private chart: Chart<'line'> | null = null;
+  private chart: MoodChartInstance | null = null;
   private range: MoodDashboardRange = '30d';
   private records: MoodLogRecord[] = [];
   private loaded = false;
