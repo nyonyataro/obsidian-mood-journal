@@ -10,7 +10,10 @@ export default defineConfig([
     files: ['src/**/*.ts', 'tests/**/*.ts'],
     languageOptions: {
       parser,
-      parserOptions: { project: './tsconfig.eslint.json' }
+      parserOptions: {
+        project: './tsconfig.eslint.json',
+        tsconfigRootDir: import.meta.dirname,
+      }
     },
     plugins: { '@typescript-eslint': tseslint },
     rules: {

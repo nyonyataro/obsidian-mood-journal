@@ -1,5 +1,5 @@
 import { Modal, Notice } from 'obsidian';
-import { MOODS } from '../domain/mood';
+import { MOOD_SCORE_ORDER, MOODS } from '../domain/mood';
 import { isEffectivelyHidden, toggleActivitySelection } from '../domain/activity';
 import type MoodJournalPlugin from '../main';
 import type { ActivityDefinition, JournalDraft, MoodScore } from '../types';
@@ -38,7 +38,7 @@ export class JournalEntryModal extends Modal {
 
   override onOpen(): void {
     this.modalEl.addClass('mood-journal-dialog');
-    this.setTitle(t(this.plugin.moodSettings.locale, 'entry.title'));
+    this.setTitle(t(this.plugin.locale, 'entry.title'));
     this.render();
     this.mobileViewport.attach();
   }
@@ -50,7 +50,7 @@ export class JournalEntryModal extends Modal {
 
   override close(): void {
     if (!this.allowClose && this.isDirty()) {
-      new DiscardConfirmModal(this.app, this.plugin.moodSettings.locale, () => {
+      new DiscardConfirmModal(this.app, this.plugin.locale, () => {
         this.allowClose = true;
         this.close();
       }).open();
@@ -61,7 +61,7 @@ export class JournalEntryModal extends Modal {
 
   private render(): void {
     const { contentEl } = this;
-    const locale = this.plugin.moodSettings.locale;
+    const locale = this.plugin.locale;
     contentEl.empty();
     contentEl.addClass('mood-journal-modal');
     const body = contentEl.createDiv({ cls: 'mood-journal-modal-body' });
@@ -71,7 +71,7 @@ export class JournalEntryModal extends Modal {
 
     body.createEl('p', { text: t(locale, 'entry.mood') });
     const moods = body.createDiv({ cls: 'mood-journal-moods' });
-    for (const score of [5, 4, 3, 2, 1] as MoodScore[]) {
+    for (const score of MOOD_SCORE_ORDER) {
       const button = moods.createEl('button', {
         text: `${MOODS[score]} ${this.plugin.moodSettings.moodLabels[score]}`,
         cls: 'mood-journal-mood',
@@ -280,10 +280,10 @@ export class JournalEntryModal extends Modal {
       await this.plugin.journalService.saveDraft(this.draft);
       this.allowClose = true;
       this.close();
-      new Notice(t(this.plugin.moodSettings.locale, 'notice.saved'));
+      new Notice(t(this.plugin.locale, 'notice.saved'));
     } catch (cause) {
       const code = cause instanceof MoodJournalError ? cause.code : 'UNKNOWN';
-      this.error = `${t(this.plugin.moodSettings.locale, 'error.save')} (${code})`;
+      this.error = `${t(this.plugin.locale, 'error.save')} (${code})`;
       console.error(
         '[mood-journal]',
         code,
@@ -303,6 +303,6 @@ export class JournalEntryModal extends Modal {
         ? parseManualDateTime(this.draft.manualDate, this.draft.manualTime)
         : new Date();
     if (occurredAt === null) return;
-    new MarkdownPreviewModal(this.app, this.plugin.moodSettings.locale, generateCallout(this.plugin.journalService.createEntry(this.draft, occurredAt))).open();
+    new MarkdownPreviewModal(this.app, this.plugin.locale, generateCallout(this.plugin.journalService.createEntry(this.draft, occurredAt))).open();
   }
 }

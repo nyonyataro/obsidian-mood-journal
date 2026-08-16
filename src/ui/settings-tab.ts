@@ -1,8 +1,9 @@
-import { Notice, PluginSettingTab, Setting, SettingPage, TFile, moment, setIcon, type SettingDefinitionItem } from 'obsidian';
+import { Notice, PluginSettingTab, Setting, TFile, moment, setIcon, type SettingDefinitionItem } from 'obsidian';
 import type MoodJournalPlugin from '../main';
 import { t } from '../i18n';
-import { LABELS, MOODS } from '../domain/mood';
-import type { ManualDailyNoteSettings, MoodScore } from '../types';
+import { isLocalePreference } from '../i18n/locale';
+import { LABELS, MOOD_SCORE_ORDER, MOODS } from '../domain/mood';
+import type { ManualDailyNoteSettings } from '../types';
 import { ActivityService } from '../services/activity-service';
 import { ActivityEditorModal } from './activity-editor-modal';
 import { ConfirmModal } from './discard-confirm-modal';
@@ -12,28 +13,31 @@ import { generateDailyNotePath } from '../services/daily-note-path';
 export class MoodJournalSettingTab extends PluginSettingTab {
   private coreSettings: ManualDailyNoteSettings | null = null;
   private coreError = false;
-  private settingsPage: MoodJournalSettingsPage | null = null;
   constructor(private readonly plugin: MoodJournalPlugin) { super(plugin.app, plugin); }
   override getSettingDefinitions(): SettingDefinitionItem[] {
+    const locale = this.plugin.locale;
     return [{
-      type: 'page',
-      name: t(this.plugin.moodSettings.locale, 'settings.title'),
-      page: () => {
-        const page = new MoodJournalSettingsPage(this);
-        this.settingsPage = page;
-        return page;
-      }
+      type: 'group',
+      heading: t(locale, 'settings.title'),
+      items: [{
+        name: '',
+        searchable: false,
+        render: (setting) => {
+          setting.settingEl.empty();
+          setting.settingEl.removeClass('setting-item');
+          this.renderSettings(setting.settingEl);
+        },
+      }],
     }];
   }
-  getSettingsTitle(): string { return t(this.plugin.moodSettings.locale, 'settings.title'); }
-  renderSettings(containerEl: HTMLElement): void {
-    const locale = this.plugin.moodSettings.locale; containerEl.empty(); containerEl.addClass('mood-journal-settings');
+  private renderSettings(containerEl: HTMLElement): void {
+    const locale = this.plugin.locale; containerEl.empty(); containerEl.addClass('mood-journal-settings');
     const links = new Setting(containerEl).setName(t(locale, 'settings.links'));
     this.linkButton(links.controlEl, t(locale, 'settings.feedback'), 'github', 'https://github.com/nyonyataro/obsidian-mood-journal/issues/new/choose');
     this.linkButton(links.controlEl, t(locale, 'settings.donate'), 'coffee', 'https://buymeacoffee.com/nyonyataro');
-    new Setting(containerEl).setName(t(locale, 'settings.language')).addDropdown((drop) => drop.addOption('ja', '日本語').addOption('en', 'English').setValue(locale).onChange(async (value) => { if (value === 'ja' || value === 'en') { this.plugin.moodSettings.locale = value; await this.plugin.saveSettings(); this.refreshSettings(); new Notice(t(value, 'notice.commandNameReload')); } }));
+    new Setting(containerEl).setName(t(locale, 'settings.language')).addDropdown((drop) => drop.addOption('auto', t(locale, 'language.auto')).addOption('ja', t(locale, 'language.japanese')).addOption('en', t(locale, 'language.english')).setValue(this.plugin.moodSettings.locale).onChange(async (value) => { if (isLocalePreference(value)) { this.plugin.moodSettings.locale = value; await this.plugin.saveSettings(); this.plugin.markDashboardViewsDirty(); this.update(); new Notice(t(this.plugin.locale, 'notice.commandNameReload')); } }));
     this.heading(containerEl, t(locale, 'settings.daily'), t(locale, 'settings.dailyHelp'));
-    new Setting(containerEl).setName(t(locale, 'settings.destination')).setDesc(t(locale, 'settings.destinationHelp')).addDropdown((drop) => drop.addOption('follow-core', t(locale, 'setup.follow')).addOption('manual', t(locale, 'setup.manual')).setValue(this.plugin.moodSettings.dailyNote.mode).onChange(async (value) => { if (value === 'follow-core' || value === 'manual') { this.plugin.moodSettings.dailyNote.mode = value; await this.plugin.saveSettings(); this.refreshSettings(); } }));
+    new Setting(containerEl).setName(t(locale, 'settings.destination')).setDesc(t(locale, 'settings.destinationHelp')).addDropdown((drop) => drop.addOption('follow-core', t(locale, 'setup.follow')).addOption('manual', t(locale, 'setup.manual')).setValue(this.plugin.moodSettings.dailyNote.mode).onChange(async (value) => { if (value === 'follow-core' || value === 'manual') { this.plugin.moodSettings.dailyNote.mode = value; await this.plugin.saveSettings(); this.update(); } }));
     if (this.plugin.moodSettings.dailyNote.mode === 'manual') {
       this.textSetting(containerEl, t(locale, 'settings.folder'), this.plugin.moodSettings.dailyNote.manual.folder, async (value) => this.updateManual('folder', value));
       this.textSetting(containerEl, t(locale, 'settings.format'), this.plugin.moodSettings.dailyNote.manual.format, async (value) => this.updateManual('format', value));
@@ -41,15 +45,15 @@ export class MoodJournalSettingTab extends PluginSettingTab {
       this.dailyPreview(containerEl, this.plugin.moodSettings.dailyNote.manual);
     } else this.coreSettingsDisplay(containerEl, locale);
     const moodHeader = this.heading(containerEl, t(locale, 'settings.moodLabels'), t(locale, 'settings.moodLabelsHelp'));
-    moodHeader.createEl('button', { text: t(locale, 'settings.resetMoodLabels'), cls: 'mood-journal-add-tag-button' }).onclick = () => new ConfirmModal(this.app, { title: t(locale, 'settings.resetMoodLabels'), body: t(locale, 'settings.resetMoodLabelsConfirm'), cancelLabel: t(locale, 'entry.cancel'), confirmLabel: t(locale, 'settings.reset') }, () => { this.plugin.moodSettings.moodLabels = { ...LABELS[locale] }; void this.plugin.saveSettings().then(() => this.refreshSettings()); }).open();
-    for (const score of [1, 2, 3, 4, 5] as MoodScore[]) this.textSetting(containerEl, `${MOODS[score]} ${score}`, this.plugin.moodSettings.moodLabels[score], async (value) => { if (value.trim().length < 1 || value.trim().length > 30 || /[\r\n]/u.test(value)) throw new Error('invalid mood label'); this.plugin.moodSettings.moodLabels[score] = value.trim(); });
-    const tagsHeader = this.heading(containerEl, t(locale, 'settings.tags'), t(locale, 'settings.tagsHelp')); tagsHeader.createEl('button', { text: `+ ${t(locale, 'settings.addTag')}`, cls: 'mood-journal-add-tag-button' }).onclick = () => new ActivityEditorModal(this.plugin, () => this.refreshSettings()).open();
-    const search = containerEl.createEl('input', { cls: 'mood-journal-activity-search', attr: { type: 'search', placeholder: t(locale, 'settings.searchTags'), 'aria-label': t(locale, 'settings.searchTags') } }); const tagList = containerEl.createDiv(); const activities = this.plugin.moodSettings.activities;
+    moodHeader.createEl('button', { text: t(locale, 'settings.resetMoodLabels'), cls: 'mood-journal-add-tag-button' }).onclick = () => new ConfirmModal(this.app, { title: t(locale, 'settings.resetMoodLabels'), body: t(locale, 'settings.resetMoodLabelsConfirm'), cancelLabel: t(locale, 'entry.cancel'), confirmLabel: t(locale, 'settings.reset') }, () => { this.plugin.moodSettings.moodLabels = { ...LABELS[locale] }; void this.plugin.saveSettings().then(() => this.update()); }).open();
+    for (const score of MOOD_SCORE_ORDER) this.textSetting(containerEl, `${MOODS[score]} ${score}`, this.plugin.moodSettings.moodLabels[score], async (value) => { if (value.trim().length < 1 || value.trim().length > 30 || /[\r\n]/u.test(value)) throw new Error('invalid mood label'); this.plugin.moodSettings.moodLabels[score] = value.trim(); });
+    const tagsHeader = this.heading(containerEl, t(locale, 'settings.tags'), t(locale, 'settings.tagsHelp')); tagsHeader.createEl('button', { text: `+ ${t(locale, 'settings.addTag')}`, cls: 'mood-journal-add-tag-button' }).onclick = () => new ActivityEditorModal(this.plugin, () => this.update()).open();
+    const search = containerEl.createEl('input', { cls: 'mood-journal-activity-search', attr: { type: 'search', placeholder: t(locale, 'settings.searchTags'), 'aria-label': t(locale, 'settings.searchTags') } }); const tagList = containerEl.createDiv({ cls: 'mood-journal-tag-list' }); const activities = this.plugin.moodSettings.activities;
     for (const parent of activities.filter((activity) => activity.parentId === null)) { const group = tagList.createDiv({ cls: 'mood-journal-tag-group' }); group.dataset.searchText = `${parent.label} ${parent.slug} ${activities.filter((item) => item.parentId === parent.id).map((item) => `${item.label} ${item.slug}`).join(' ')}`.toLocaleLowerCase(); this.tagSetting(group, parent.id, parent.label, parent.hidden, false); for (const child of activities.filter((activity) => activity.parentId === parent.id)) this.tagSetting(group, child.id, child.label, child.hidden || parent.hidden, true); }
     search.oninput = () => { const query = search.value.trim().toLocaleLowerCase(); for (const group of Array.from(tagList.querySelectorAll<HTMLElement>('.mood-journal-tag-group'))) group.toggleClass('mood-journal-hidden', Boolean(query) && !(group.dataset.searchText ?? '').includes(query)); };
     this.heading(containerEl, t(locale, 'settings.setup'), t(locale, 'settings.setupHelp')); new Setting(containerEl).setName(t(locale, 'settings.restartSetup')).addButton((button) => button.setButtonText(t(locale, 'settings.start')).onClick(() => this.plugin.openSetupWizard()));
   }
-  private dailyPreview(container: HTMLElement, settings: ManualDailyNoteSettings): void { try { new Setting(container).setName(t(this.plugin.moodSettings.locale, 'setup.preview')).setDesc(generateDailyNotePath(settings, (format) => moment.default().format(format))); } catch { new Setting(container).setName(t(this.plugin.moodSettings.locale, 'setup.preview')).setDesc('—'); } }
+  private dailyPreview(container: HTMLElement, settings: ManualDailyNoteSettings): void { try { new Setting(container).setName(t(this.plugin.locale, 'setup.preview')).setDesc(generateDailyNotePath(settings, (format) => moment.default().format(format))); } catch { new Setting(container).setName(t(this.plugin.locale, 'setup.preview')).setDesc('—'); } }
   private async updateManual(field: keyof ManualDailyNoteSettings, value: string | null): Promise<void> {
     const manual = { ...this.plugin.moodSettings.dailyNote.manual, [field]: value }; if (!manual.format.trim()) throw new Error('empty date format'); generateDailyNotePath(manual, (format) => moment.default().format(format));
     if (manual.templatePath !== null) { const target = this.plugin.app.metadataCache.getFirstLinkpathDest(manual.templatePath, '') ?? this.plugin.app.vault.getAbstractFileByPath(manual.templatePath.endsWith('.md') ? manual.templatePath : `${manual.templatePath}.md`); if (!(target instanceof TFile)) throw new Error('template missing'); }
@@ -61,19 +65,11 @@ export class MoodJournalSettingTab extends PluginSettingTab {
     else if (this.coreError) setting.setDesc(t(locale, 'settings.coreError'));
     else { setting.setDesc('…'); void this.redetectCore(); }
   }
-  private async redetectCore(): Promise<void> { try { this.coreSettings = await new CoreDailyNoteConfigReader(this.plugin.app.vault).readCoreSettings(); this.coreError = false; } catch { this.coreSettings = null; this.coreError = true; } this.refreshSettings(); }
+  private async redetectCore(): Promise<void> { try { this.coreSettings = await new CoreDailyNoteConfigReader(this.plugin.app.vault).readCoreSettings(); this.coreError = false; } catch { this.coreSettings = null; this.coreError = true; } this.update(); }
   private heading(container: HTMLElement, title: string, helpText: string): HTMLElement { const setting = new Setting(container).setName(title).setHeading(); setting.settingEl.addClass('mood-journal-settings-heading'); const help = setting.controlEl.createEl('button', { text: '?', cls: 'mood-journal-help-button', attr: { 'aria-label': `${title}の説明`, title: helpText, 'aria-expanded': 'false' } }); const description = container.createDiv({ text: helpText, cls: 'mood-journal-heading-help mood-journal-hidden' }); help.onclick = () => { const hidden = description.hasClass('mood-journal-hidden'); description.toggleClass('mood-journal-hidden', !hidden); help.setAttribute('aria-expanded', String(hidden)); }; return setting.controlEl; }
   private linkButton(container: HTMLElement, label: string, icon: 'github' | 'coffee', url: string): void { const button = container.createEl('button', { cls: 'mod-cta mood-journal-link-button', attr: { type: 'button', 'aria-label': label } }); const iconEl = button.createSpan({ cls: 'mood-journal-link-button-icon' }); setIcon(iconEl, icon); button.createSpan({ text: label }); button.onclick = () => { button.win.open(url, '_blank', 'noopener,noreferrer'); }; }
   private textSetting(container: HTMLElement, name: string, value: string, update: (value: string) => Promise<void>): void { new Setting(container).setName(name).addText((text) => { text.setValue(value); text.inputEl.addEventListener('blur', () => void this.saveTextValue(text.inputEl.value, update)); }); }
-  private async saveTextValue(value: string, update: (value: string) => Promise<void>): Promise<void> { try { await update(value); this.plugin.scheduleSettingsSave(); } catch { new Notice(t(this.plugin.moodSettings.locale, 'settings.invalidValue')); this.refreshSettings(); } }
-  private tagSetting(container: HTMLElement, id: string, label: string, hidden: boolean, child: boolean): void { const locale = this.plugin.moodSettings.locale; let isHidden = hidden; const description = (): string => t(locale, isHidden ? 'settings.hidden' : 'settings.visible'); const setting = new Setting(container).setName(child ? `↳ ${label}` : label).setDesc(description()).addText((text) => { text.setValue(label); text.inputEl.addEventListener('blur', () => void this.renameTag(id, label, text.inputEl.value)); }).addButton((button) => button.setButtonText(isHidden ? t(locale, 'settings.restore') : t(locale, 'settings.hide')).onClick(async () => { isHidden = !isHidden; this.plugin.moodSettings.activities = new ActivityService().setHidden(this.plugin.moodSettings.activities, id, isHidden, new Date().toISOString()); await this.plugin.saveSettings(); setting.setDesc(description()); button.setButtonText(isHidden ? t(locale, 'settings.restore') : t(locale, 'settings.hide')); setting.settingEl.toggleClass('mood-journal-tag-is-hidden', isHidden); })); setting.settingEl.toggleClass('mood-journal-tag-is-hidden', isHidden); if (child) setting.settingEl.addClass('mood-journal-tag-child'); }
-  private async renameTag(id: string, previous: string, value: string): Promise<void> { if (value === previous) return; try { this.plugin.moodSettings.activities = new ActivityService().rename(this.plugin.moodSettings.activities, id, value, new Date().toISOString()); await this.plugin.saveSettings(); this.refreshSettings(); } catch { new Notice(t(this.plugin.moodSettings.locale, 'settings.tagRenameError')); this.refreshSettings(); } }
-  clearSettingsPage(page: MoodJournalSettingsPage): void { if (this.settingsPage === page) this.settingsPage = null; }
-  private refreshSettings(): void { if (this.settingsPage !== null) this.settingsPage.display(); else this.update(); }
-}
-
-class MoodJournalSettingsPage extends SettingPage {
-  constructor(private readonly tab: MoodJournalSettingTab) { super(); }
-  override display(): void { this.title = this.tab.getSettingsTitle(); this.tab.renderSettings(this.containerEl); }
-  override hide(): void { this.tab.clearSettingsPage(this); }
+  private async saveTextValue(value: string, update: (value: string) => Promise<void>): Promise<void> { try { await update(value); this.plugin.scheduleSettingsSave(); } catch { new Notice(t(this.plugin.locale, 'settings.invalidValue')); this.update(); } }
+  private tagSetting(container: HTMLElement, id: string, label: string, hidden: boolean, child: boolean): void { const locale = this.plugin.locale; let isHidden = hidden; const description = (): string => t(locale, isHidden ? 'settings.hidden' : 'settings.visible'); const setting = new Setting(container).setName(child ? `↳ ${label}` : label).setDesc(description()).addText((text) => { text.setValue(label); text.inputEl.addEventListener('blur', () => void this.renameTag(id, label, text.inputEl.value)); }).addButton((button) => button.setButtonText(isHidden ? t(locale, 'settings.restore') : t(locale, 'settings.hide')).onClick(async () => { isHidden = !isHidden; this.plugin.moodSettings.activities = new ActivityService().setHidden(this.plugin.moodSettings.activities, id, isHidden, new Date().toISOString()); await this.plugin.saveSettings(); setting.setDesc(description()); button.setButtonText(isHidden ? t(locale, 'settings.restore') : t(locale, 'settings.hide')); setting.settingEl.toggleClass('mood-journal-tag-is-hidden', isHidden); })); setting.settingEl.addClass('mood-journal-tag-row'); setting.settingEl.toggleClass('mood-journal-tag-is-hidden', isHidden); if (child) setting.settingEl.addClass('mood-journal-tag-child'); }
+  private async renameTag(id: string, previous: string, value: string): Promise<void> { if (value === previous) return; try { this.plugin.moodSettings.activities = new ActivityService().rename(this.plugin.moodSettings.activities, id, value, new Date().toISOString()); await this.plugin.saveSettings(); this.update(); } catch { new Notice(t(this.plugin.locale, 'settings.tagRenameError')); this.update(); } }
 }

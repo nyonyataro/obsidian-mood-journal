@@ -16,6 +16,10 @@ On first launch, choose a language and Daily notes mode. Use the smile ribbon ic
 
 The plugin follows Obsidian Daily notes settings or uses its manual folder/date-format/template settings. It renders only core `{{title}}`, `{{date}}`, and `{{time}}` template variables; it does not execute Templater.
 
+## Mood dashboard
+
+Open **Mood dashboard** from the ribbon or command palette to view a read-only summary of valid Mood Journal logs across the whole Vault. The dashboard supports 30-day, 90-day, and all-time ranges, daily average mood, record counts, score distribution, and a daily list with links back to source notes. Missing days remain gaps rather than being treated as a score of zero. Existing Markdown is never rewritten, and the dashboard scans on demand without a persistent cache.
+
 ## Saved Markdown
 
 English entries use an English heading and always include the journal root tag:

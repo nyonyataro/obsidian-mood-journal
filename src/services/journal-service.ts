@@ -1,13 +1,13 @@
 import type { TFile } from 'obsidian';
 import { activityLabelPath, activitySlugPath } from '../domain/activity';
 import { MOODS, isMoodScore } from '../domain/mood';
-import type { JournalDraft, JournalEntry, MoodJournalSettings } from '../types';
+import type { JournalDraft, JournalEntry, Locale, MoodJournalSettings } from '../types';
 import { parseManualDateTime, toOffsetIso, uniqueEntryDate } from '../utils/datetime';
 import { MoodJournalError } from '../utils/errors';
 import type { DailyNoteService } from './daily-note-service';
 
 export class JournalService {
-  constructor(private readonly dailyNotes: DailyNoteService, private readonly settings: () => MoodJournalSettings) {}
+  constructor(private readonly dailyNotes: DailyNoteService, private readonly settings: () => MoodJournalSettings, private readonly getLocale: () => Locale) {}
   async saveDraft(draft: JournalDraft): Promise<{ file: TFile; entry: JournalEntry }> {
     if (!isMoodScore(draft.moodScore)) throw new MoodJournalError('INVALID_MOOD', 'error.moodRequired');
     const date = draft.dateTimeMode === 'manual' ? parseManualDateTime(draft.manualDate, draft.manualTime) : new Date();
@@ -23,7 +23,7 @@ export class JournalService {
     if (selected.length !== draft.activityIds.length) throw new MoodJournalError('INVALID_ACTIVITY', 'error.invalidActivity');
     const id = toOffsetIso(uniqueEntryDate(date, []));
     return {
-      locale: settings.locale,
+      locale: this.getLocale(),
       id,
       occurredAt: id,
       moodScore: draft.moodScore,
