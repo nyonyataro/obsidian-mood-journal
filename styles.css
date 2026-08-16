@@ -421,7 +421,7 @@
 .mood-dashboard-chart-details ul {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: var(--size-4-6);
+  gap: var(--size-4-2) var(--size-4-6);
   margin: var(--size-4-2) 0 0;
   padding-left: var(--size-4-5);
 }
