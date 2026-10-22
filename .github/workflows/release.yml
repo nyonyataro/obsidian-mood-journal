@@ -16,7 +16,7 @@ jobs:
             exit 1
           fi
       - uses: actions/setup-node@v6
-        with: { node-version: 24, cache: npm }
+        with: { node-version: 24.22.1, cache: npm }
       - run: npm ci
       - run: npm run check
       - uses: actions/attest-build-provenance@v3
